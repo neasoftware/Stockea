@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Stockeá — Gestión de negocio</title>
+<style>
+:root{--bg:#0b1020;--panel:#141d31;--line:#293650;--blue:#568cff;
+--txt:#f2f5ff;--muted:#95a3bd;--green:#35d49a;--red:#ff7184;--yellow:#ffcb77}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font:15px Arial,sans-serif}
+button,input,select{font:inherit;border-radius:9px}
+button{border:0;background:var(--blue);color:white;padding:11px 14px;
+font-weight:bold;cursor:pointer}
+button:disabled{opacity:.45}
+input,select{width:100%;padding:12px;background:#0c1426;color:white;
+border:1px solid var(--line)}
+label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+.field{margin-bottom:13px}
+header{height:68px;display:flex;align-items:center;justify-content:space-between;
+padding:0 18px;border-bottom:1px solid var(--line);background:var(--panel)}
+.logo{font-size:24px;font-weight:900;color:var(--blue)}
+.logo span{color:white}
+header small{color:var(--muted)}
+.layout{display:flex;min-height:calc(100vh - 68px)}
+nav{width:210px;padding:18px 12px;border-right:1px solid var(--line);
+background:var(--panel);flex-shrink:0}
+nav button{width:100%;text-align:left;background:transparent;color:var(--muted);
+margin-bottom:7px}
+nav button.active,nav button:hover{background:#23365a;color:white}
+main{padding:24px;width:100%;max-width:1250px;margin:0 auto}
+h1{margin:0 0 7px;font-size:27px}
+h2{font-size:20px}
+.sub{color:var(--muted);margin:0 0 24px}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.card,.panel{background:var(--panel);border:1px solid var(--line);
+border-radius:14px;padding:17px}
+.card p{color:var(--muted);font-size:13px;margin:0 0 12px}
+.card strong{font-size:23px;overflow-wrap:anywhere}
+.green{color:var(--green)}
+.muted{color:var(--muted)}
+.sectionhead{display:flex;justify-content:space-between;align-items:center;
+gap:10px;flex-wrap:wrap}
+.panel{margin-top:18px}
+.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.formgrid .full{grid-column:1/-1}
+.toolbar{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:15px 0}
+.product{display:flex;align-items:center;gap:12px;padding:13px 0;
+border-bottom:1px solid var(--line)}
+.product:last-child{border-bottom:0}
+.thumb{width:48px;height:48px;border-radius:11px;flex-shrink:0;
+border:1px solid #ffffff40;background-size:cover;background-position:center;
+display:flex;align-items:center;justify-content:center}
+.pinfo{flex:1;min-width:0}
+.pinfo b{display:block;overflow-wrap:anywhere}
+.pinfo small{display:block;color:var(--muted);margin-top:5px;line-height:1.5}
+.actions{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.actions button{padding:8px 10px;font-size:12px}
+.quick-qty{display:flex;gap:4px;align-items:center;margin-right:5px}
+.quick-qty button{background:#23365a;padding:6px 10px;font-size:13px}
+.secondary{background:#2b3953}
+.danger{background:#512738;color:#ffb7c1}
+.badge{font-size:11px;color:var(--green);background:#102c24;padding:3px 8px;border-radius:6px;display:inline-block}
+.badge.low{color:var(--yellow);background:#332914}
+.empty{text-align:center;color:var(--muted);padding:24px 4px}
+.hidden{display:none!important}
+.notice{font-size:12px;color:var(--muted);line-height:1.6;margin-top:20px}
+#setup{max-width:650px;margin:35px auto;padding:25px}
+#setup .logo{margin-bottom:18px}
+#setup h1{margin-bottom:10px}
+#setup .sub{line-height:1.5}
+#setup button{width:100%;margin-top:7px}
+@media(max-width:650px){
+ .layout{display:block}
+ nav{width:100%;display:flex;overflow-x:auto;gap:5px;padding:8px;
+ border-right:0;border-bottom:1px solid var(--line)}
+ nav button{width:auto;white-space:nowrap;margin:0;padding:11px}
+ main{padding:17px 12px}
+ .stats{grid-template-columns:1fr;gap:8px}
+ .card{padding:13px}
+ .card strong{font-size:19px}
+ .formgrid{grid-template-columns:1fr}
+ .formgrid .full{grid-column:auto}
+ .toolbar{grid-template-columns:1fr}
+ .product{align-items:flex-start;flex-wrap:wrap}
+ .actions{width:100%;padding-left:60px}
+}
+</style>
+</head>
+<body>
+<header>
+ <div class="logo">Stockeá<span>.</span></div>
+ <small id="businessHeader">Tu negocio</small>
+</header>
+
+<div id="setup" class="panel hidden">
+ <div class="logo">Stockeá<span>.</span></div>
+ <h1>Configuremos tu negocio</h1>
+ <p class="sub">Completá estos datos una sola vez. Después vas a poder administrar tus productos y ventas.</p>
+ <form id="setupForm">
+  <div class="field"><label>Nombre del negocio *</label>
+   <input id="bizName" required placeholder="Ej. SB Tech"></div>
+  <div class="field"><label>Dueños *</label>
+   <input id="owners" required placeholder="Ej. Bruno y Santi"></div>
+  <div class="field"><label>Rubro del negocio</label>
+   <select id="businessType">
+    <option>Tecnología y accesorios</option><option>Ropa y moda</option>
+    <option>Alimentos y bebidas</option><option>Perfumería</option>
+    <option>Regalería</option><option>Otro</option>
+   </select>
+  </div>
+  <div class="field"><label>Categorías de productos *</label>
+   <input id="categories" required value="Auriculares, Cargadores, Cables, Otros"
+    placeholder="Separá las categorías con comas"></div>
+  <button type="submit">Crear mi negocio →</button>
+ </form>
+</div>
+
+<div id="app" class="layout hidden">
+ <nav>
+  <button class="active" data-page="dashboard">⌂ Resumen</button>
+  <button data-page="stock">▦ Stock</button>
+  <button data-page="sales">↗ Ventas</button>
+  <button data-page="settings">⚙ Mi negocio</button>
+ </nav>
+
+ <main>
+  <section id="dashboard">
+   <div class="sectionhead">
+    <div>
+     <h1 id="welcome">Resumen</h1>
+     <p class="sub">Así marcha tu emprendimiento.</p>
+    </div>
+    <div>
+     <select id="periodFilter" onchange="render()" style="padding:8px 12px;font-size:13px">
+      <option value="today">📅 Hoy</option>
+      <option value="week">📅 Esta semana</option>
+      <option value="month" selected>📅 Este mes</option>
+      <option value="all">📅 Histórico total</option>
+     </select>
+    </div>
+   </div>
+
+   <div class="stats">
+    <div class="card"><p>Ventas en el período</p><strong id="statSales">$0</strong></div>
+    <div class="card"><p>Ganancia bruta</p><strong id="statProfit" class="green">$0</strong></div>
+    <div class="card"><p>Unidades en stock actual</p><strong id="statStock">0</strong></div>
+    <div class="card"><p>Valor del stock a costo</p><strong id="statValue">$0</strong></div>
+   </div>
+
+   <div class="panel">
+    <h2>🏆 Producto estrella del período</h2>
+    <div id="topProduct"><div class="empty">Aún no hay ventas registradas en este período.</div></div>
+   </div>
+
+   <div class="panel">
+    <div class="sectionhead"><h2>Últimas ventas</h2>
+     <button class="secondary" onclick="page('sales')">Ver todas</button></div>
+    <div id="recentSales"></div>
+   </div>
+
+   <div class="panel">
+    <h2>Stock bajo (≤ 3 unidades)</h2><div id="lowStock"></div>
+   </div>
+  </section>
+
+  <section id="stock" class="hidden">
+   <div class="sectionhead"><div><h1>Stock</h1>
+    <p class="sub">Administrá tus productos, precios y fotos.</p></div>
+    <button onclick="toggleForm()">+ Agregar producto</button></div>
+
+   <div id="productFormPanel" class="panel hidden">
+    <h2 id="formTitle">Nuevo producto</h2>
+    <form id="productForm">
+     <div class="formgrid">
+      <div class="field"><label>Nombre *</label>
+       <input id="pName" required placeholder="Ej. Auriculares Bluetooth"></div>
+      <div class="field"><label>Categoría *</label>
+       <select id="pCategory" required></select></div>
+      <div class="field"><label>Color / Detalle</label>
+       <input id="pColor" placeholder="Ej. Negro"></div>
+      <div class="field"><label>Color de referencia (si no hay foto)</label>
+       <input id="pColorCode" type="color" value="#568cff"></div>
+      <div class="field"><label>Precio de costo por unidad ($) *</label>
+       <input id="pCost" type="number" min="0" step="0.01" required></div>
+      <div class="field"><label>Precio de venta por unidad ($) *</label>
+       <input id="pPrice" type="number" min="0.01" step="0.01" required></div>
+      <div class="field"><label>Cantidad disponible *</label>
+       <input id="pQty" type="number" min="0" step="1" required></div>
+      <div class="field"><label>Código (opcional)</label>
+       <input id="pCode" placeholder="Ej. AUD-001"></div>
+      <div class="field full"><label>Foto del producto (opcional)</label>
+       <input id="pImageFile" type="file" accept="image/*" onchange="handleImage(event)">
+       <input type="hidden" id="pImage">
+       <div id="imagePreview" style="margin-top:8px;max-width:100px;max-height:100px"></div>
+      </div>
+     </div>
+     <button type="submit">Guardar producto</button>
+     <button type="button" class="secondary" onclick="toggleForm(false)">Cancelar</button>
+    </form>
+   </div>
+
+   <div class="toolbar">
+    <input id="search" placeholder="Buscar por nombre, código o color..." aria-label="Buscar producto">
+    <select id="filterCategory"><option value="">Todas las categorías</option></select>
+   </div>
+   <div class="panel"><div id="productList"></div></div>
+  </section>
+
+  <section id="sales" class="hidden">
+   <h1>Ventas</h1><p class="sub">Historial completo con métodos de pago y ganancias.</p>
+   <div class="panel">
+    <h2>Registro de ventas</h2><div id="allSales"></div>
+   </div>
+  </section>
+
+  <section id="settings" class="hidden">
+   <h1>Mi negocio</h1><p class="sub">Configuración de tu emprendimiento.</p>
+   <div class="panel">
+    <form id="settingsForm">
+     <div class="field"><label>Nombre del negocio</label><input id="editBiz" required></div>
+     <div class="field"><label>Dueños</label><input id="editOwners" required></div>
+     <div class="field"><label>Rubro</label><select id="editType">
+      <option>Tecnología y accesorios</option><option>Ropa y moda</option>
+      <option>Alimentos y bebidas</option><option>Perfumería</option>
+      <option>Regalería</option><option>Otro</option>
+     </select></div>
+     <div class="field"><label>Categorías separadas por comas</label>
+      <input id="editCategories" required></div>
+     <button type="submit">Guardar cambios</button>
+    </form>
+    
+    <hr style="border-color:var(--line);margin:24px 0">
+    <h2>Respaldo de datos (Backup)</h2>
+    <p class="sub">Descargá o cargá un archivo JSON para pasar tus datos a otro dispositivo.</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
+     <button type="button" class="secondary" onclick="exportData()">📥 Descargar Respaldo</button>
+     <button type="button" class="secondary" onclick="$('importFile').click()">📤 Cargar Respaldo</button>
+     <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+    </div>
+
+    <hr style="border-color:var(--line);margin:24px 0">
+    <button class="danger" onclick="resetDemo()">Restablecer datos</button>
+    <p class="notice">Esto borra todo lo guardado en este navegador.</p>
+   </div>
+  </section>
+
+  <p class="notice">Stockeá v2.3 — Tus datos se guardan de forma local en este dispositivo.</p>
+ </main>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const money=n=>new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',maximumFractionDigits:2}).format(n);
+const initial={
+ business:null,
+ products:[
+  {id:1,name:'Auriculares Bluetooth',category:'Auriculares',color:'Negro',colorCode:'#222222',image:'',cost:8000,price:12000,qty:8,code:'AUD-001'},
+  {id:2,name:'Cargador USB-C',category:'Cargadores',color:'Blanco',colorCode:'#eeeeee',image:'',cost:3500,price:6000,qty:5,code:'CAR-001'},
+  {id:3,name:'Cable USB-C',category:'Cables',color:'Azul',colorCode:'#568cff',image:'',cost:1200,price:2500,qty:2,code:'CAB-001'}
+ ],
+ sales:[]
+};
+let db;
+try{db=JSON.parse(localStorage.getItem('stockea-v3'))||initial}
+catch(e){db=structuredClone(initial)}
+let editingId=null;
+
+function persist(){localStorage.setItem('stockea-v3',JSON.stringify(db));render()}
+function escapeHTML(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+function init(){
+ if(!db.business){$('setup').classList.remove('hidden');$('app').classList.add('hidden')}
+ else{
+  $('setup').classList.add('hidden');$('app').classList.remove('hidden');
+  render();page('dashboard');
+ }
+}
+$('setupForm').onsubmit=e=>{
+ e.preventDefault();
+ const cats=$('categories').value.split(',').map(s=>s.trim()).filter(Boolean);
+ if(!cats.length)return alert('Agregá al menos una categoría.');
+ db.business={name:$('bizName').value.trim(),owners:$('owners').value.trim(),type:$('businessType').value,categories:cats};
+ persist();init();
+};
+function page(id){
+ document.querySelectorAll('main section').forEach(s=>s.classList.add('hidden'));
+ $(id).classList.remove('hidden');
+ document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===id));
+ if(id==='stock')renderProducts();
+ if(id==='sales')renderSales();
+}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>page(b.dataset.page));
+
+function fillCategories(){
+ const cats=db.business?.categories||['Otros'];
+ const options=cats.map(c=>`<option>${escapeHTML(c)}</option>`).join('');
+ $('pCategory').innerHTML=options;
+ $('filterCategory').innerHTML='<option value="">Todas las categorías</option>'+options;
+}
+
+function filterSalesByPeriod(){
+ const period=$('periodFilter').value;
+ if(period==='all')return db.sales;
+ const now=new Date();
+ return db.sales.filter(s=>{
+  const d=new Date(s.timestamp||s.date);
+  if(period==='today'){
+   return d.toDateString()===now.toDateString();
+  }else if(period==='week'){
+   const startOfWeek=new Date(now);
+   startOfWeek.setDate(now.getDate()-now.getDay());
+   startOfWeek.setHours(0,0,0,0);
+   return d>=startOfWeek;
+  }else if(period==='month'){
+   return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
+  }
+  return true;
+ });
+}
+
+function render(){
+ if(!db.business)return;
+ $('businessHeader').textContent=db.business.name;
+ $('welcome').textContent='¡Hola, '+db.business.owners.split(' ')[0]+'! 👋';
+ fillCategories();
+
+ const filteredSales=filterSalesByPeriod();
+ const sold=filteredSales.reduce((s,v)=>s+v.total,0);
+ const profit=filteredSales.reduce((s,v)=>s+v.profit,0);
+ const stock=db.products.reduce((s,p)=>s+p.qty,0);
+ const value=db.products.reduce((s,p)=>s+p.qty*p.cost,0);
+
+ $('statSales').textContent=money(sold);
+ $('statProfit').textContent=money(profit);
+ $('statStock').textContent=stock;
+ $('statValue').textContent=money(value);
+
+ // Top product in period
+ const productSales={};
+ filteredSales.forEach(s=>{
+  productSales[s.name]=(productSales[s.name]||0)+(s.qtySold||1);
+ });
+ const sortedTop=Object.entries(productSales).sort((a,b)=>b[1]-a[1]);
+ if(sortedTop.length){
+  $('topProduct').innerHTML=`<div class="product"><div class="pinfo"><b>⭐ ${escapeHTML(sortedTop[0][0])}</b><small>Unidades vendidas en el período: <b>${sortedTop[0][1]}</b></small></div></div>`;
+ }else{
+  $('topProduct').innerHTML='<div class="empty">Aún no hay ventas registradas en este período.</div>';
+ }
+
+ $('recentSales').innerHTML=filteredSales.length?
+  filteredSales.slice(-4).reverse().map(saleRow).join(''):
+  '<div class="empty">No hay ventas en este período.</div>';
+
+ const low=db.products.filter(p=>p.qty<=3);
+ $('lowStock').innerHTML=low.length?low.map(p=>
+  `<div class="product"><div class="pinfo"><b>${escapeHTML(p.name)}</b>
+  <small>Quedan ${p.qty} unidades</small></div><span class="badge low">Stock bajo</span></div>`
+ ).join():'<div class="empty">No hay productos con stock bajo.</div>';
+ renderProducts();
+}
+
+function renderProducts(){
+ const query=$('search').value.toLowerCase();
+ const cat=$('filterCategory').value;
+ const items=db.products.filter(p=>
+  (p.name+' '+p.code+' '+p.color).toLowerCase().includes(query)&&
+  (!cat||p.category===cat));
+ 
+ $('productList').innerHTML=items.length?items.map(p=>`
+  <div class="product">
+   <div class="thumb" style="${p.image?`background-image:url('${p.image}')`:`background:${/^#[0-9a-f]{6}$/i.test(p.colorCode)?p.colorCode:'#568cff'}`}"></div>
+   <div class="pinfo"><b>${escapeHTML(p.name)}</b>
+    <small>${escapeHTML(p.category)} · ${escapeHTML(p.color||'Sin color')}
+    ${p.code?' · '+escapeHTML(p.code):''}<br>
+    Costo: ${money(p.cost)} · Venta: ${money(p.price)}<br>
+    Stock: <b>${p.qty}</b> · Ganancia unitaria: <span class="green">${money(p.price-p.cost)}</span></small>
+   </div>
+   <div class="quick-qty">
+    <button onclick="quickQty(${p.id}, -1)">-</button>
+    <span style="font-size:14px;font-weight:bold;min-width:20px;text-align:center">${p.qty}</span>
+    <button onclick="quickQty(${p.id}, 1)">+</button>
+   </div>
+   <div class="actions">
+    <button onclick="sell(${p.id})" ${p.qty<=0?'disabled':''}>Vendido</button>
+    <button class="secondary" onclick="editProduct(${p.id})">Editar</button>
+    <button class="danger" onclick="deleteProduct(${p.id})">×</button>
+   </div>
+  </div>`).join(''):'<div class="empty">No se encontraron productos.</div>';
+}
+$('search').oninput=renderProducts;
+$('filterCategory').onchange=renderProducts;
+
+function handleImage(e){
+ const file=e.target.files[0];
+ if(!file)return;
+ const reader=new FileReader();
+ reader.onload=event=>{
+  const img=new Image();
+  img.onload=()=>{
+   const canvas=document.createElement('canvas');
+   const ctx=canvas.getContext('2d');
+   const MAX_WIDTH=150;
+   const MAX_HEIGHT=150;
+   let width=img.width;
+   let height=img.height;
+   if(width>height){if(width>MAX_WIDTH){height*=MAX_WIDTH/width;width=MAX_WIDTH;}}
+   else{if(height>MAX_HEIGHT){width*=MAX_HEIGHT/height;height=MAX_HEIGHT;}}
+   canvas.width=width;canvas.height=height;
+   ctx.drawImage(img,0,0,width,height);
+   const dataurl=canvas.toDataURL('image/jpeg',0.7);
+   $('pImage').value=dataurl;
+   $('imagePreview').innerHTML=`<img src="${dataurl}" style="width:100%;height:100%;object-fit:cover;border-radius:8px">`;
+  };
+  img.src=event.target.result;
+ };
+ reader.readAsDataURL(file);
+}
+
+function toggleForm(show){
+ if(show===undefined)show=$('productFormPanel').classList.contains('hidden');
+ $('productFormPanel').classList.toggle('hidden',!show);
+ if(!show){
+  editingId=null;$('productForm').reset();$('pImage').value='';$('imagePreview').innerHTML='';$('formTitle').textContent='Nuevo producto';
+ }else $('pName').focus();
+}
+
+$('productForm').onsubmit=e=>{
+ e.preventDefault();
+ const qty=Number($('pQty').value),cost=Number($('pCost').value),price=Number($('pPrice').value);
+ if(!Number.isInteger(qty)||qty<0||cost<0||price<=0)return alert('Revisá la cantidad y los precios.');
+ const p={
+  id:editingId||Date.now(),
+  name:$('pName').value.trim(),
+  category:$('pCategory').value,
+  color:$('pColor').value.trim(),
+  colorCode:$('pColorCode').value,
+  image:$('pImage').value,
+  cost,price,qty,
+  code:$('pCode').value.trim()
+ };
+ if(editingId){
+  const index=db.products.findIndex(x=>x.id===editingId);
+  if(index>=0)db.products[index]=p;
+ }else db.products.push(p);
+ toggleForm(false);persist();
+};
+
+function editProduct(id){
+ const p=db.products.find(x=>x.id===id);if(!p)return;
+ editingId=id;toggleForm(true);$('formTitle').textContent='Editar producto';
+ $('pName').value=p.name;$('pCategory').value=p.category;$('pColor').value=p.color;
+ $('pColorCode').value=p.colorCode;$('pCost').value=p.cost;
+ $('pPrice').value=p.price;$('pQty').value=p.qty;$('pCode').value=p.code;
+ $('pImage').value=p.image||'';
+ $('imagePreview').innerHTML=p.image?`<img src="${p.image}" style="width:100%;height:100%;object-fit:cover;border-radius:8px">`:'';
+ $('productFormPanel').scrollIntoView({behavior:'smooth'});
+}
+
+function quickQty(id,delta){
+ const p=db.products.find(x=>x.id===id);if(!p)return;
+ if(p.qty+delta<0)return;
+ p.qty+=delta;
+ persist();
+}
+
+function deleteProduct(id){
+ if(confirm('¿Eliminar este producto?')){
+  db.products=db.products.filter(p=>p.id!==id);persist();
+ }
+}
+
+function sell(id){
+ const p=db.products.find(x=>x.id===id);if(!p||p.qty<1)return;
+ 
+ const qtyInput=prompt(`Producto: ${p.name}\nStock disponible: ${p.qty}\nPrecio unitario sugerido: ${money(p.price)}\n\n¿Cuántas unidades se vendieron?`, "1");
+ if(qtyInput===null)return;
+ const qtySold=Number(qtyInput);
+ if(!Number.isInteger(qtySold)||qtySold<=0)return alert('Ingresá una cantidad válida.');
+ if(qtySold>p.qty)return alert('No hay suficiente stock para esa cantidad.');
+
+ const totalSuggested=p.price*qtySold;
+ const answer=prompt(`Vendiendo ${qtySold} unidad(es) de ${p.name}.\nPrecio total sugerido: ${money(totalSuggested)}\n\n¿Cuál fue el monto total cobrado?`,totalSuggested);
+ if(answer===null)return;
+ const total=Number(answer);
+ if(!Number.isFinite(total)||total<0)return alert('Ingresá un precio válido.');
+
+ const paymentMethod=prompt(`Seleccioná el método de pago:\n1. Efectivo\n2. Transferencia\n3. Mercado Pago / Tarjeta\n4. Fiado`, "1");
+ const methods={'1':'Efectivo','2':'Transferencia','3':'Mercado Pago / Tarjeta','4':'Fiado'};
+ const method=methods[paymentMethod]||'Efectivo';
+
+ const totalCost=p.cost*qtySold;
+ const profit=total-totalCost;
+
+ if(!confirm(`Confirmar venta por ${money(total)} (${qtySold} u. - ${method})?\nGanancia estimada: ${money(profit)}`))return;
+
+ p.qty-=qtySold;
+ db.sales.push({
+  id:Date.now(),
+  name:p.name,
+  qtySold,
+  cost:totalCost,
+  total,
+  profit,
+  method,
+  timestamp:new Date().toISOString(),
+  date:new Date().toLocaleString('es-AR')
+ });
+ persist();
+}
+
+function saleRow(s){
+ return `<div class="product"><div class="pinfo"><b>${escapeHTML(s.name)} ${s.qtySold>1?`(x${s.qtySold})`:''}</b>
+ <small>${escapeHTML(s.date)} · Pago: <b>${escapeHTML(s.method||'Efectivo')}</b> · Costo: ${money(s.cost)}</small>
+ <small class="green">Ganancia: ${money(s.profit)}</small></div>
+ <b>${money(s.total)}</b></div>`;
+}
+function renderSales(){
+ $('allSales').innerHTML=db.sales.length?
+  db.sales.slice().reverse().map(saleRow).join(''):
+  '<div class="empty">Todavía no hay ventas registradas.</div>';
+}
+$('settingsForm').onsubmit=e=>{
+ e.preventDefault();
+ const cats=$('editCategories').value.split(',').map(s=>s.trim()).filter(Boolean);
+ if(!cats.length)return alert('Agregá al menos una categoría.');
+ db.business={name:$('editBiz').value.trim(),owners:$('editOwners').value.trim(),type:$('editType').value,categories:cats};
+ persist();alert('Negocio actualizado.');
+};
+
+function exportData(){
+ const dataStr="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(db));
+ const dlAnchor=document.createElement('a');
+ dlAnchor.setAttribute("href", dataStr);
+ dlAnchor.setAttribute("download", `stockea_backup_${new Date().toISOString().slice(0,10)}.json`);
+ document.body.appendChild(dlAnchor);
+ dlAnchor.click();
+ dlAnchor.remove();
+}
+
+function importData(event){
+ const file=event.target.files[0];
+ if(!file)return;
+ const reader=new FileReader();
+ reader.onload=e=>{
+  try{
+   const imported=JSON.parse(e.target.result);
+   if(!imported.business||!Array.isArray(imported.products))throw new Error();
+   db=imported;
+   persist();
+   alert('¡Datos importados correctamente!');
+   location.reload();
+  }catch(err){
+   alert('El archivo no es válido o está corrupto.');
+  }
+ };
+ reader.readAsText(file);
+}
+
+function resetDemo(){
+ if(confirm('Esto borra el negocio, los productos y las ventas guardadas. ¿Continuar?')){
+  localStorage.removeItem('stockea-v3');location.reload();
+ }
+}
+
+const originalRender=render;
+render=function(){
+ originalRender();
+ if(db.business){
+  $('editBiz').value=db.business.name;
+  $('editOwners').value=db.business.owners;
+  $('editType').value=db.business.type;
+  $('editCategories').value=db.business.categories.join(', ');
+ }
+};
+init();
+</script>
+</body>
+</html>
