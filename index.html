@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Stockeá — Gestión de negocio en la nube</title>
+<title>Stockeá — Gestión profesional en la nube</title>
 
 <!-- Firebase SDKs (Compatibility Layer) -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -27,7 +27,7 @@ header{height:68px;display:flex;align-items:center;justify-content:space-between
 padding:0 18px;border-bottom:1px solid var(--line);background:var(--panel)}
 .logo{font-size:24px;font-weight:900;color:var(--blue)}
 .logo span{color:white}
-header small{color:var(--muted)}
+.user-info{display:flex;align-items:center;gap:12px;font-size:13px;color:var(--muted)}
 .layout{display:flex;min-height:calc(100vh - 68px)}
 nav{width:210px;padding:18px 12px;border-right:1px solid var(--line);
 background:var(--panel);flex-shrink:0}
@@ -71,13 +71,13 @@ display:flex;align-items:center;justify-content:center}
 .empty{text-align:center;color:var(--muted);padding:24px 4px}
 .hidden{display:none!important}
 .notice{font-size:12px;color:var(--muted);line-height:1.6;margin-top:20px}
-.auth-box{max-width:420px;margin:60px auto;padding:25px}
+.auth-box{max-width:420px;margin:50px auto;padding:25px}
 .auth-box button{width:100%;margin-top:10px}
 .tabs{display:flex;gap:10px;margin-bottom:20px}
 .tabs button{flex:1;background:transparent;border:1px solid var(--line);color:var(--muted)}
 .tabs button.active{background:var(--blue);color:white;border-color:var(--blue)}
-#setup{max-width:650px;margin:35px auto;padding:25px}
-#setup button{width:100%;margin-top:7px}
+#setup{max-width:550px;margin:30px auto;padding:25px}
+#setup button{width:100%;margin-top:10px}
 @media(max-width:650px){
  .layout{display:block}
  nav{width:100%;display:flex;overflow-x:auto;gap:5px;padding:8px;
@@ -99,10 +99,13 @@ display:flex;align-items:center;justify-content:center}
 
 <header>
  <div class="logo">Stockeá<span>.</span></div>
- <small id="businessHeader">No conectado</small>
+ <div class="user-info">
+  <span id="userEmailDisplay"></span>
+  <button class="secondary" onclick="logout()" style="padding:6px 10px;font-size:12px">Cerrar sesión</button>
+ </div>
 </header>
 
-<!-- PANTALLA DE LOGIN / REGISTRO -->
+<!-- 1. PANTALLA DE AUTENTICACIÓN (LOGIN / REGISTRO) -->
 <div id="authScreen" class="auth-box panel">
  <div class="logo" style="text-align:center;margin-bottom:20px">Stockeá<span>.</span></div>
  <div class="tabs">
@@ -119,37 +122,50 @@ display:flex;align-items:center;justify-content:center}
  <p id="authError" style="color:var(--red);font-size:13px;margin-top:12px;text-align:center" class="hidden"></p>
 </div>
 
-<!-- CONFIGURACIÓN INICIAL DEL NEGOCIO -->
+<!-- 2. PANTALLA DE SELECCIÓN / CREACIÓN DE NEGOCIO -->
 <div id="setup" class="panel hidden">
  <div class="logo">Stockeá<span>.</span></div>
- <h1>Configuremos tu negocio</h1>
- <p class="sub">Completá estos datos para sincronizar con tu correo.</p>
- <form id="setupForm">
+ <h1>Gestión de Negocio</h1>
+ <p class="sub">Elegí si querés crear un nuevo negocio o unirte al de tu socio mediante un código.</p>
+ 
+ <div class="tabs">
+  <button id="tabCreateBiz" class="active" onclick="toggleBizMode('create')">Crear negocio nuevo</button>
+  <button id="tabJoinBiz" onclick="toggleBizMode('join')">Unirse con código</button>
+ </div>
+
+ <form id="createBizForm">
   <div class="field"><label>Nombre del negocio *</label>
    <input id="bizName" required placeholder="Ej. Mi Emprendimiento"></div>
   <div class="field"><label>Dueños *</label>
    <input id="owners" required placeholder="Ej. Bruno y Santi"></div>
-  <div class="field"><label>Rubro del negocio</label>
+  <div class="field"><label>Código único de tienda (para que Santi se una) *</label>
+   <input id="storeCode" required placeholder="Ej. stockea-bruno-2026"></div>
+  <div class="field"><label>Rubro</label>
    <select id="businessType">
     <option>Tecnología y accesorios</option><option>Ropa y moda</option>
-    <option>Alimentos y bebidas</option><option>Perfumería</option>
-    <option>Regalería</option><option>Otro</option>
+    <option>Alimentos y bebidas</option><option>Perfumería</option><option>Otro</option>
    </select>
   </div>
-  <div class="field"><label>Categorías de productos *</label>
-   <input id="categories" required value="General, Otros" placeholder="Separá las categorías con comas"></div>
-  <button type="submit">Guardar y Vincular Negocio →</button>
+  <div class="field"><label>Categorías (separadas por comas)</label>
+   <input id="categories" required value="General, Otros"></div>
+  <button type="submit">Crear y Entrar →</button>
  </form>
+
+ <form id="joinBizForm" class="hidden">
+  <div class="field"><label>Ingresá el código de la tienda de tu socio *</label>
+   <input id="joinCode" required placeholder="Ej. stockea-bruno-2026"></div>
+  <button type="submit" class="secondary">Unirse a la tienda →</button>
+ </form>
+ <button onclick="logout()" class="danger" style="width:100%;margin-top:15px">← Volver / Cambiar de cuenta</button>
 </div>
 
-<!-- APLICACIÓN PRINCIPAL -->
+<!-- 3. APLICACIÓN PRINCIPAL -->
 <div id="app" class="layout hidden">
  <nav>
   <button class="active" data-page="dashboard">⌂ Resumen</button>
   <button data-page="stock">▦ Stock</button>
   <button data-page="sales">↗ Ventas</button>
   <button data-page="settings">⚙ Mi negocio</button>
-  <button onclick="logout()" style="margin-top:20px;color:var(--red)">🔒 Cerrar sesión</button>
  </nav>
 
  <main>
@@ -157,7 +173,7 @@ display:flex;align-items:center;justify-content:center}
    <div class="sectionhead">
     <div>
      <h1 id="welcome">Resumen</h1>
-     <p class="sub">Así marcha tu emprendimiento.</p>
+     <p class="sub" id="storeSubInfo">Panel general.</p>
     </div>
     <div>
      <select id="periodFilter" onchange="render()" style="padding:8px 12px;font-size:13px">
@@ -243,15 +259,15 @@ display:flex;align-items:center;justify-content:center}
   </section>
 
   <section id="settings" class="hidden">
-   <h1>Mi negocio</h1><p class="sub">Configuración sincronizada en la nube.</p>
+   <h1>Mi negocio</h1><p class="sub">Configuración y código de acceso compartido.</p>
    <div class="panel">
-    <form id="settingsForm">
+    <p><b>Código de tu tienda para compartir con socios:</b> <span id="displayStoreCode" class="green" style="font-size:16px"></span></p>
+    <form id="settingsForm" style="margin-top:15px">
      <div class="field"><label>Nombre del negocio</label><input id="editBiz" required></div>
      <div class="field"><label>Dueños</label><input id="editOwners" required></div>
      <div class="field"><label>Rubro</label><select id="editType">
       <option>Tecnología y accesorios</option><option>Ropa y moda</option>
-      <option>Alimentos y bebidas</option><option>Perfumería</option>
-      <option>Regalería</option><option>Otro</option>
+      <option>Alimentos y bebidas</option><option>Perfumería</option><option>Otro</option>
      </select></div>
      <div class="field"><label>Categorías separadas por comas</label>
       <input id="editCategories" required></div>
@@ -260,7 +276,7 @@ display:flex;align-items:center;justify-content:center}
    </div>
   </section>
 
-  <p class="notice">Stockeá — Sincronizado por correo de usuario.</p>
+  <p class="notice">Stockeá — Sistema profesional multicuenta y colaborativo.</p>
  </main>
 </div>
 
@@ -281,29 +297,29 @@ const db = firebase.firestore();
 
 const $=id=>document.getElementById(id);
 const money=n=>new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',maximumFractionDigits:2}).format(n);
-function escapeHTML(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function escapeHTML(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;0'[c]))}
 
 let currentUser = null;
+let currentStoreId = localStorage.getItem('stockea_store_id') || null;
 let currentBusiness = null;
 let products = [];
 let sales = [];
 let editingId = null;
 let authMode = 'login';
-let unsubscribeBiz = null;
-let unsubscribeProd = null;
-let unsubscribeSales = null;
-
-// Convertir el email en un ID válido para Firestore reemplazando puntos y símbolos
-function getStoreId(email) {
-  return email.toLowerCase().replace(/[^a-z0-9]/g, '_');
-}
+let bizMode = 'create';
+let unsubscribeBiz = null, unsubscribeProd = null, unsubscribeSales = null;
 
 function toggleAuthTab(mode){
  authMode = mode;
  $('tabLogin').classList.toggle('active', mode === 'login');
- $('tabRegister').classList.toggle('active', mode === 'register');
- $('authSubmitBtn').textContent = mode === 'login' ? 'Iniciar sesión' : 'Registrarse';
+ $('tabRegister').classList.toggle('active', mode === 'register');$('authSubmitBtn').textContent = mode === 'login' ? 'Iniciar sesión' : 'Registrarse';
  $('authError').classList.add('hidden');
+}
+
+function toggleBizMode(mode){
+ bizMode = mode;
+ $('tabCreateBiz').classList.toggle('active', mode === 'create');$('tabJoinBiz').classList.toggle('active', mode === 'join');
+ $('createBizForm').classList.toggle('hidden', mode !== 'create');$('joinBizForm').classList.toggle('hidden', mode !== 'join');
 }
 
 $('authForm').onsubmit = async e => {
@@ -311,7 +327,6 @@ $('authForm').onsubmit = async e => {
  const email = $('authEmail').value.trim();
  const password = $('authPassword').value;
  $('authError').classList.add('hidden');
-
  try {
   if (authMode === 'login') {
    await auth.signInWithEmailAndPassword(email, password);
@@ -324,32 +339,39 @@ $('authForm').onsubmit = async e => {
  }
 };
 
-function logout(){ 
+function logout(){
  if (unsubscribeBiz) unsubscribeBiz();
  if (unsubscribeProd) unsubscribeProd();
  if (unsubscribeSales) unsubscribeSales();
+ localStorage.removeItem('stockea_store_id');
+ currentStoreId = null;
  auth.signOut().then(() => {
-  location.reload();
+  $('app').classList.add('hidden');$('setup').classList.add('hidden');
+  $('authScreen').classList.remove('hidden');$('authForm').reset();
  });
 }
 
 auth.onAuthStateChanged(user => {
  currentUser = user;
  if (user) {
-  $('authScreen').classList.add('hidden');
-  loadUserCloudData(user);
+  $('userEmailDisplay').textContent = user.email;
+  if (currentStoreId) {
+   loadStoreData(currentStoreId);
+  } else {
+   $('authScreen').classList.add('hidden');
+   $('setup').classList.remove('hidden');$('app').classList.add('hidden');
+  }
  } else {
-  $('authScreen').classList.remove('hidden');
-  $('setup').classList.add('hidden');
-  $('app').classList.add('hidden');
-  $('businessHeader').textContent = 'No conectado';
+  $('userEmailDisplay').textContent = '';$('authScreen').classList.remove('hidden');
+  $('setup').classList.add('hidden');$('app').classList.add('hidden');
  }
 });
 
-function loadUserCloudData(user){
- const storeId = getStoreId(user.email);
+function loadStoreData(storeId){
+ currentStoreId = storeId;
+ localStorage.setItem('stockea_store_id', storeId);
  const bizRef = db.collection('businesses').doc(storeId);
- 
+
  if(unsubscribeBiz) unsubscribeBiz();
  if(unsubscribeProd) unsubscribeProd();
  if(unsubscribeSales) unsubscribeSales();
@@ -357,14 +379,14 @@ function loadUserCloudData(user){
  unsubscribeBiz = bizRef.onSnapshot(doc => {
   if (doc.exists) {
    currentBusiness = doc.data();
-   $('setup').classList.add('hidden');
-   $('app').classList.remove('hidden');
+   $('authScreen').classList.add('hidden');
+   $('setup').classList.add('hidden');$('app').classList.remove('hidden');
    render();
   } else {
-   currentBusiness = null;
-   $('setup').classList.remove('hidden');
-   $('app').classList.add('hidden');
-   $('businessHeader').textContent = 'Crear negocio';
+   alert('La tienda seleccionada no existe o fue eliminada.');
+   localStorage.removeItem('stockea_store_id');
+   currentStoreId = null;
+   $('app').classList.add('hidden');$('setup').classList.remove('hidden');
   }
  });
 
@@ -379,282 +401,6 @@ function loadUserCloudData(user){
  });
 }
 
-$('setupForm').onsubmit = async e => {
+$('createBizForm').onsubmit = async e => {
  e.preventDefault();
- if (!currentUser) return alert('Debes iniciar sesión.');
- const cats = $('categories').value.split(',').map(s=>s.trim()).filter(Boolean);
- if (!cats.length) return alert('Agregá al menos una categoría.');
- 
- const bizData = {
-  name: $('bizName').value.trim(),
-  owners: $('owners').value.trim(),
-  type: $('businessType').value,
-  categories: cats,
-  ownerEmail: currentUser.email
- };
-
- const storeId = getStoreId(currentUser.email);
- await db.collection('businesses').doc(storeId).set(bizData);
-};
-
-function page(id){
- document.querySelectorAll('main section').forEach(s=>s.classList.add('hidden'));
- $(id).classList.remove('hidden');
- document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===id));
- if(id==='stock')renderProducts();
- if(id==='sales')renderSales();
-}
-document.querySelectorAll('nav button').forEach(b=>{
- if(b.dataset.page) b.onclick=()=>page(b.dataset.page);
-});
-
-function fillCategories(){
- const cats = currentBusiness?.categories || ['Otros'];
- const options = cats.map(c=>`<option>${escapeHTML(c)}</option>`).join('');
- $('pCategory').innerHTML = options;
- $('filterCategory').innerHTML = '<option value="">Todas las categorías</option>' + options;
-}
-
-function filterSalesByPeriod(){
- const period = $('periodFilter').value;
- if (period === 'all') return sales;
- const now = new Date();
- return sales.filter(s => {
-  const d = new Date(s.timestamp || s.date);
-  if (period === 'today') return d.toDateString() === now.toDateString();
-  if (period === 'week') {
-   const startOfWeek = new Date(now);
-   startOfWeek.setDate(now.getDate() - now.getDay());
-   startOfWeek.setHours(0,0,0,0);
-   return d >= startOfWeek;
-  }
-  if (period === 'month') return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-  return true;
- });
-}
-
-function render(){
- if (!currentBusiness) return;
- $('businessHeader').textContent = currentBusiness.name;
- $('welcome').textContent = '¡Hola, ' + currentBusiness.owners.split(' ')[0] + '! 👋';
- fillCategories();
-
- const filteredSales = filterSalesByPeriod();
- const sold = filteredSales.reduce((s,v)=>s+v.total,0);
- const profit = filteredSales.reduce((s,v)=>s+v.profit,0);
- const stockQty = products.reduce((s,p)=>s+p.qty,0);
- const value = products.reduce((s,p)=>s+(p.qty*p.cost),0);
-
- $('statSales').textContent = money(sold);
- $('statProfit').textContent = money(profit);
- $('statStock').textContent = stockQty;
- $('statValue').textContent = money(value);
-
- const productSales = {};
- filteredSales.forEach(s => { productSales[s.name] = (productSales[s.name] || 0) + (s.qtySold || 1); });
- const sortedTop = Object.entries(productSales).sort((a,b)=>b[1]-a[1]);
- $('topProduct').innerHTML = sortedTop.length ?
-  `<div class="product"><div class="pinfo"><b>⭐ ${escapeHTML(sortedTop[0][0])}</b><small>Unidades vendidas: <b>${sortedTop[0][1]}</b></small></div></div>` :
-  '<div class="empty">Aún no hay ventas registradas.</div>';
-
- $('recentSales').innerHTML = filteredSales.length ?
-  filteredSales.slice(-4).reverse().map(saleRow).join('') :
-  '<div class="empty">No hay ventas en este período.</div>';
-
- const low = products.filter(p => p.qty <= 3);
- $('lowStock').innerHTML = low.length ? low.map(p =>
-  `<div class="product"><div class="pinfo"><b>${escapeHTML(p.name)}</b><small>Quedan ${p.qty} u.</small></div><span class="badge low">Stock bajo</span></div>`
- ).join('') : '<div class="empty">No hay productos con stock bajo.</div>';
-
- renderProducts();
-}
-
-function renderProducts(){
- const query = $('search').value.toLowerCase();
- const cat = $('filterCategory').value;
- const items = products.filter(p =>
-  (p.name+' '+(p.code||'')+' '+(p.color||'')).toLowerCase().includes(query) &&
-  (!cat || p.category === cat));
-
- $('productList').innerHTML = items.length ? items.map(p => `
-  <div class="product">
-   <div class="thumb" style="${p.image ? `background-image:url('${p.image}')` : `background:${p.colorCode || '#568cff'}`}"></div>
-   <div class="pinfo"><b>${escapeHTML(p.name)}</b>
-    <small>${escapeHTML(p.category)} · ${escapeHTML(p.color||'Sin detalle')} ${p.code?' · '+escapeHTML(p.code):''}<br>
-    Costo: ${money(p.cost)} · Venta: ${money(p.price)}<br>
-    Stock: <b>${p.qty}</b> · Ganancia unitaria: <span class="green">${money(p.price-p.cost)}</span></small>
-   </div>
-   <div class="quick-qty">
-    <button onclick="quickQty('${p.id}', -1)">-</button>
-    <span style="font-size:14px;font-weight:bold;min-width:20px;text-align:center">${p.qty}</span>
-    <button onclick="quickQty('${p.id}', 1)">+</button>
-   </div>
-   <div class="actions">
-    <button onclick="sell('${p.id}')" ${p.qty<=0?'disabled':''}>Vendido</button>
-    <button class="secondary" onclick="editProduct('${p.id}')">Editar</button>
-    <button class="danger" onclick="deleteProduct('${p.id}')">×</button>
-   </div>
-  </div>`).join('') : '<div class="empty">No tenés productos cargados todavía.</div>';
-}
-$('search').oninput = renderProducts;
-$('filterCategory').onchange = renderProducts;
-
-function handleImage(e){
- const file = e.target.files[0];
- if(!file) return;
- const reader = new FileReader();
- reader.onload = event => {
-  const img = new Image();
-  img.onload = () => {
-   const canvas = document.createElement('canvas');
-   const ctx = canvas.getContext('2d');
-   const MAX = 150;
-   let w = img.width, h = img.height;
-   if (w > h) { if (w > MAX) { h *= MAX/w; w = MAX; } }
-   else { if (h > MAX) { w *= MAX/h; h = MAX; } }
-   canvas.width = w; canvas.height = h;
-   ctx.drawImage(img,0,0,w,h);
-   const dataurl = canvas.toDataURL('image/jpeg', 0.7);
-   $('pImage').value = dataurl;
-   $('imagePreview').innerHTML = `<img src="${dataurl}" style="width:100%;height:100%;object-fit:cover;border-radius:8px">`;
-  };
-  img.src = event.target.result;
- };
- reader.readAsDataURL(file);
-}
-
-function toggleForm(show){
- if (show === undefined) show = $('productFormPanel').classList.contains('hidden');
- $('productFormPanel').classList.toggle('hidden', !show);
- if (!show) {
-  editingId = null; $('productForm').reset(); $('pImage').value = ''; $('imagePreview').innerHTML = ''; $('formTitle').textContent = 'Nuevo producto';
- } else $('pName').focus();
-}
-
-$('productForm').onsubmit = async e => {
- e.preventDefault();
- if (!currentUser) return;
- const qty = Number($('pQty').value), cost = Number($('pCost').value), price = Number($('pPrice').value);
- if (!Number.isInteger(qty) || qty < 0 || cost < 0 || price <= 0) return alert('Revisá los datos ingresados.');
- 
- const pData = {
-  name: $('pName').value.trim(),
-  category: $('pCategory').value,
-  color: $('pColor').value.trim(),
-  colorCode: $('pColorCode').value,
-  image: $('pImage').value,
-  cost, price, qty,
-  code: $('pCode').value.trim()
- };
-
- const storeId = getStoreId(currentUser.email);
- const colRef = db.collection('businesses').doc(storeId).collection('products');
- if (editingId) {
-  await colRef.doc(editingId).update(pData);
- } else {
-  await colRef.add(pData);
- }
- toggleForm(false);
-};
-
-function editProduct(id){
- const p = products.find(x => x.id === id); if(!p) return;
- editingId = id; toggleForm(true); $('formTitle').textContent = 'Editar producto';
- $('pName').value = p.name; $('pCategory').value = p.category; $('pColor').value = p.color;
- $('pColorCode').value = p.colorCode || '#568cff'; $('pCost').value = p.cost;
- $('pPrice').value = p.price; $('pQty').value = p.qty; $('pCode').value = p.code || '';
- $('pImage').value = p.image || '';
- $('imagePreview').innerHTML = p.image ? `<img src="${p.image}" style="width:100%;height:100%;object-fit:cover;border-radius:8px">` : '';
- $('productFormPanel').scrollIntoView({behavior:'smooth'});
-}
-
-async function quickQty(id, delta){
- const p = products.find(x => x.id === id); if(!p || !currentUser) return;
- if (p.qty + delta < 0) return;
- const storeId = getStoreId(currentUser.email);
- await db.collection('businesses').doc(storeId).collection('products').doc(id).update({
-  qty: p.qty + delta
- });
-}
-
-async function deleteProduct(id){
- if (confirm('¿Eliminar este producto?') && currentUser) {
-  const storeId = getStoreId(currentUser.email);
-  await db.collection('businesses').doc(storeId).collection('products').doc(id).delete();
- }
-}
-
-async function sell(id){
- const p = products.find(x => x.id === id); if(!p || p.qty < 1 || !currentUser) return;
- const qtyInput = prompt(`Producto: ${p.name}\nStock disponible: ${p.qty}\n\n¿Cuántas unidades se vendieron?`, "1");
- if (!qtyInput) return;
- const qtySold = Number(qtyInput);
- if (!Number.isInteger(qtySold) || qtySold <= 0 || qtySold > p.qty) return alert('Cantidad no válida.');
-
- const totalSuggested = p.price * qtySold;
- const answer = prompt(`Vendiendo ${qtySold} u. de ${p.name}.\nPrecio sugerido: ${money(totalSuggested)}\n\n¿Monto total cobrado?`, totalSuggested);
- if (!answer) return;
- const total = Number(answer);
-
- const paymentMethod = prompt(`Método de pago:\n1. Efectivo\n2. Transferencia\n3. Mercado Pago / Tarjeta\n4. Fiado`, "1");
- const methods = {'1':'Efectivo','2':'Transferencia','3':'Mercado Pago / Tarjeta','4':'Fiado'};
- const method = methods[paymentMethod] || 'Efectivo';
-
- const totalCost = p.cost * qtySold;
- const profit = total - totalCost;
-
- const storeId = getStoreId(currentUser.email);
- const storeRef = db.collection('businesses').doc(storeId);
- await storeRef.collection('products').doc(id).update({ qty: p.qty - qtySold });
- await storeRef.collection('sales').add({
-  name: p.name,
-  qtySold,
-  cost: totalCost,
-  total,
-  profit,
-  method,
-  timestamp: new Date().toISOString(),
-  date: new Date().toLocaleString('es-AR')
- });
-}
-
-function saleRow(s){
- return `<div class="product"><div class="pinfo"><b>${escapeHTML(s.name)} ${s.qtySold>1?`(x${s.qtySold})`:''}</b>
- <small>${escapeHTML(s.date)} · Pago: <b>${escapeHTML(s.method||'Efectivo')}</b></small>
- <small class="green">Ganancia: ${money(s.profit)}</small></div>
- <b>${money(s.total)}</b></div>`;
-}
-
-function renderSales(){
- $('allSales').innerHTML = sales.length ?
-  sales.slice().reverse().map(saleRow).join('') :
-  '<div class="empty">Todavía no hay ventas registradas.</div>';
-}
-
-$('settingsForm').onsubmit = async e => {
- e.preventDefault();
- if (!currentUser) return;
- const cats = $('editCategories').value.split(',').map(s=>s.trim()).filter(Boolean);
- const storeId = getStoreId(currentUser.email);
- await db.collection('businesses').doc(storeId).update({
-  name: $('editBiz').value.trim(),
-  owners: $('editOwners').value.trim(),
-  type: $('editType').value,
-  categories: cats
- });
- alert('Datos guardados.');
-};
-
-const originalRender = render;
-render = function(){
- originalRender();
- if (currentBusiness) {
-  $('editBiz').value = currentBusiness.name;
-  $('editOwners').value = currentBusiness.owners;
-  $('editType').value = currentBusiness.type;
-  $('editCategories').value = currentBusiness.categories.join(', ');
- }
-};
-</script>
-</body>
-</html>
+ if (!currentUser) return
