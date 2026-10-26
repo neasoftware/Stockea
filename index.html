@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -11,70 +12,244 @@
 
 <style>
 :root {
-  --bg:#0b1020;--panel:#141d31;--line:#293650;
-  --blue:#568cff;--txt:#f2f5ff;--muted:#95a3bd;
-  --green:#35d49a;--red:#ff7184;
+  --bg:#0b1020; --panel:#141d31; --line:#293650;
+  --blue:#568cff; --txt:#f2f5ff; --muted:#95a3bd;
+  --green:#35d49a; --red:#ff7184;
 }
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--txt);font:15px Arial,sans-serif}
-button,input,select{font:inherit;border-radius:9px}
-button{border:0;background:var(--blue);color:white;padding:11px 14px;font-weight:bold;cursor:pointer}
-button:disabled{opacity:.5;cursor:not-allowed}
-input,select{width:100%;padding:12px;background:#0c1426;color:white;border:1px solid var(--line)}
-label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
-.field{margin-bottom:13px}
-header{min-height:68px;display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--line);background:var(--panel)}
-.logo{font-size:24px;font-weight:900;color:var(--blue)}
-.logo span{color:white}
-.panel,.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:17px}
-.auth-box{max-width:420px;margin:45px auto;padding:25px}
-.auth-box button{width:100%;margin-top:10px}
-.tabs{display:flex;gap:10px;margin-bottom:20px}
-.tabs button{flex:1;background:transparent;border:1px solid var(--line);color:var(--muted)}
-.tabs button.active{background:var(--blue);color:white}
-.hidden{display:none!important}
-.muted,.sub{color:var(--muted)}
-.green{color:var(--green)}
-.danger{background:#512738;color:#ffb7c1}
-.secondary{background:#2b3953}
-#setup{max-width:550px;margin:30px auto;padding:25px}
-.layout{display:flex;min-height:calc(100vh - 68px)}
-nav{width:210px;padding:18px 12px;border-right:1px solid var(--line);background:var(--panel);flex-shrink:0}
-nav button{display:block;width:100%;text-align:left;background:transparent;color:var(--muted);margin-bottom:7px}
-nav button.active{background:#23365a;color:white}
-main{padding:24px;width:100%;max-width:1250px;margin:auto}
-h1{margin:0 0 7px;font-size:27px}
-h2{font-size:20px}
-.sub{margin:0 0 24px}
-.sectionhead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
-.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-.card p{color:var(--muted);font-size:13px}
-.card strong{font-size:23px;overflow-wrap:anywhere}
-.panel{margin-top:18px}
-.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.formgrid .full{grid-column:1/-1}
-.toolbar{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:15px 0}
-.product,.sale{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
-.product-info{flex:1;min-width:150px}
-.product-info p,.sale p{color:var(--muted);font-size:13px;margin:5px 0}
-.product-actions{display:flex;gap:6px;flex-wrap:wrap}
-.product-actions button{padding:8px;font-size:12px}
-.thumb{width:48px;height:48px;object-fit:cover;border-radius:10px}
-.empty{text-align:center;color:var(--muted);padding:24px 4px}
-.codebox{background:#0c1426;border:1px dashed var(--blue);border-radius:10px;padding:14px;overflow-wrap:anywhere;font-weight:bold;letter-spacing:1px}
-.notice{font-size:12px;color:var(--muted);line-height:1.6}
-@media(max-width:650px){
- .layout{display:block}
- nav{width:100%;display:flex;overflow-x:auto;gap:5px;padding:8px;border-right:0;border-bottom:1px solid var(--line)}
- nav button{width:auto;white-space:nowrap;margin:0}
- main{padding:17px 12px}
- .stats,.toolbar,.formgrid{grid-template-columns:1fr}
- .formgrid .full{grid-column:auto}
+* { box-sizing:border-box }
+body {
+  margin:0; background:var(--bg); color:var(--txt);
+  font:15px Arial,sans-serif;
+}
+button,input,select { font:inherit; border-radius:9px }
+button {
+  border:0; background:var(--blue); color:white;
+  padding:11px 14px; font-weight:bold; cursor:pointer;
+}
+button:disabled { opacity:.5; cursor:not-allowed }
+input,select {
+  width:100%; padding:12px; background:#0c1426;
+  color:white; border:1px solid var(--line);
+}
+label {
+  display:block; font-size:13px; color:var(--muted);
+  margin-bottom:6px;
+}
+.field { margin-bottom:13px }
+header {
+  min-height:68px; display:flex; align-items:center;
+  justify-content:space-between; padding:12px 18px;
+  border-bottom:1px solid var(--line); background:var(--panel);
+  gap:10px;
+}
+.logo { font-size:24px; font-weight:900; color:var(--blue) }
+.logo span { color:white }
+.panel,.card {
+  background:var(--panel); border:1px solid var(--line);
+  border-radius:14px; padding:17px;
+}
+.auth-box { max-width:420px; margin:45px auto; padding:25px }
+.auth-box button { width:100%; margin-top:10px }
+.tabs { display:flex; gap:10px; margin-bottom:20px }
+.tabs button {
+  flex:1; background:transparent;
+  border:1px solid var(--line); color:var(--muted);
+}
+.tabs button.active { background:var(--blue); color:white }
+.hidden { display:none!important }
+.muted,.sub { color:var(--muted) }
+.green { color:var(--green) }
+.danger { background:#512738; color:#ffb7c1 }
+.secondary { background:#2b3953 }
+#setup { max-width:550px; margin:30px auto; padding:25px }
+.layout { display:flex; min-height:calc(100vh - 68px) }
+nav {
+  width:210px; padding:18px 12px; border-right:1px solid var(--line);
+  background:var(--panel); flex-shrink:0;
+}
+nav button {
+  display:block; width:100%; text-align:left;
+  background:transparent; color:var(--muted); margin-bottom:7px;
+}
+nav button.active { background:#23365a; color:white }
+main { padding:24px; width:100%; max-width:1250px; margin:auto }
+h1 { margin:0 0 7px; font-size:27px }
+h2 { font-size:20px }
+.sub { margin:0 0 24px }
+.sectionhead {
+  display:flex; justify-content:space-between; align-items:center;
+  gap:10px; flex-wrap:wrap;
+}
+.stats {
+  display:grid; grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+}
+.card p { color:var(--muted); font-size:13px }
+.card strong { font-size:23px; overflow-wrap:anywhere }
+.panel { margin-top:18px }
+.formgrid {
+  display:grid; grid-template-columns:1fr 1fr; gap:12px;
+}
+.formgrid .full { grid-column:1/-1 }
+.toolbar {
+  display:grid; grid-template-columns:1fr 1fr;
+  gap:10px; margin:15px 0;
+}
+.empty { text-align:center; color:var(--muted); padding:24px 4px }
+.codebox {
+  background:#0c1426; border:1px dashed var(--blue);
+  border-radius:10px; padding:14px; overflow-wrap:anywhere;
+  font-weight:bold; letter-spacing:1px;
+}
+.notice { font-size:12px; color:var(--muted); line-height:1.6 }
+
+/* CUADRÍCULA DE PRODUCTOS */
+#productList.product-grid {
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:14px;
+  padding:0;
+  border:0;
+  background:transparent;
+}
+
+.product-card {
+  min-width:0;
+  overflow:hidden;
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:15px;
+  transition:border-color .2s, transform .2s;
+}
+.product-card:hover {
+  border-color:var(--blue);
+  transform:translateY(-2px);
+}
+.product-image {
+  height:155px;
+  background:#202b40;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+}
+.product-image img {
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  padding:8px;
+}
+.product-placeholder { font-size:42px }
+.product-card-body { padding:12px }
+.product-category {
+  color:var(--muted);
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.6px;
+  margin-bottom:6px;
+}
+.product-name {
+  font-size:15px;
+  line-height:1.35;
+  overflow-wrap:anywhere;
+  margin-bottom:8px;
+}
+.product-color {
+  display:flex;
+  align-items:center;
+  gap:7px;
+  color:var(--muted);
+  font-size:12px;
+  margin-bottom:10px;
+}
+.product-color-dot {
+  width:13px;
+  height:13px;
+  flex-shrink:0;
+  border:1px solid #69758a;
+  border-radius:50%;
+}
+.product-price {
+  font-size:21px;
+  font-weight:800;
+  color:#75a7ff;
+  overflow-wrap:anywhere;
+}
+.product-cost {
+  color:var(--muted);
+  font-size:12px;
+  margin-top:4px;
+}
+.product-stock {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:5px;
+  margin-top:12px;
+  padding-top:10px;
+  border-top:1px solid var(--line);
+  font-size:12px;
+}
+.stock-status { font-weight:bold; color:var(--green) }
+.stock-status.low { color:#ffc66d }
+.stock-status.out { color:var(--red) }
+.product-actions {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:6px;
+  padding:0 10px 10px;
+}
+.product-actions button {
+  padding:9px 4px;
+  font-size:12px;
+  min-width:0;
+}
+.product-actions .danger { grid-column:1/-1 }
+
+/* Historial de ventas */
+.sale {
+  display:flex; align-items:center; gap:12px;
+  padding:13px 0; border-bottom:1px solid var(--line);
+  flex-wrap:wrap;
+}
+.sale p { color:var(--muted); font-size:13px; margin:5px 0 }
+
+@media(max-width:950px) {
+  #productList.product-grid {
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+}
+@media(max-width:650px) {
+  header { padding:12px }
+  header #userEmailDisplay {
+    display:inline-block; max-width:115px;
+    overflow:hidden; text-overflow:ellipsis; vertical-align:middle;
+  }
+  .layout { display:block }
+  nav {
+    width:100%; display:flex; overflow-x:auto; gap:5px;
+    padding:8px; border-right:0; border-bottom:1px solid var(--line);
+  }
+  nav button { width:auto; white-space:nowrap; margin:0; padding:10px }
+  main { padding:17px 12px }
+  .stats,.toolbar,.formgrid { grid-template-columns:1fr }
+  .formgrid .full { grid-column:auto }
+  #addProductBtn { width:100% }
+  #productList.product-grid {
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:10px;
+  }
+  .product-image { height:125px }
+  .product-card-body { padding:10px }
+  .product-name { font-size:14px }
+  .product-price { font-size:19px }
+  .product-actions { padding:0 8px 8px; gap:5px }
+  .product-actions button { font-size:11px; padding:9px 3px }
 }
 </style>
 </head>
-<body>
 
+<body>
 <header>
   <div class="logo">Stockeá<span>.</span></div>
   <div>
@@ -154,6 +329,7 @@ h2{font-size:20px}
     <button data-page="sales">↗ Ventas</button>
     <button data-page="settings">⚙ Mi negocio</button>
   </nav>
+
   <main>
     <section id="dashboard">
       <div class="sectionhead">
@@ -181,9 +357,13 @@ h2{font-size:20px}
 
     <section id="stock" class="hidden">
       <div class="sectionhead">
-        <div><h1>Stock</h1><p class="sub">Productos, precios y cantidades.</p></div>
+        <div>
+          <h1>Stock</h1>
+          <p class="sub">Productos, precios y cantidades.</p>
+        </div>
         <button id="addProductBtn">+ Agregar producto</button>
       </div>
+
       <div id="productFormPanel" class="panel hidden">
         <h2 id="formTitle">Nuevo producto</h2>
         <form id="productForm">
@@ -207,11 +387,15 @@ h2{font-size:20px}
           <button type="button" class="secondary" id="cancelProductBtn">Cancelar</button>
         </form>
       </div>
+
       <div class="toolbar">
-        <input id="search" placeholder="Buscar producto...">
+        <input id="search" placeholder="🔎 Buscar por nombre, color o código...">
         <select id="filterCategory"><option value="">Todas las categorías</option></select>
       </div>
-      <div class="panel"><div id="productList" class="empty">No hay productos todavía.</div></div>
+
+      <div id="productList" class="product-grid">
+        <div class="empty">No hay productos todavía.</div>
+      </div>
     </section>
 
     <section id="sales" class="hidden">
@@ -284,13 +468,8 @@ const money = value => new Intl.NumberFormat("es-AR", {
   maximumFractionDigits: 2
 }).format(Number(value) || 0);
 
-function show(id) {
-  $(id)?.classList.remove("hidden");
-}
-
-function hide(id) {
-  $(id)?.classList.add("hidden");
-}
+function show(id) { $(id)?.classList.remove("hidden"); }
+function hide(id) { $(id)?.classList.add("hidden"); }
 
 function error(id, message) {
   $(id).textContent = message || "";
@@ -299,21 +478,13 @@ function error(id, message) {
 
 function clean(value) {
   return String(value ?? "").replace(/[&<>"']/g, c => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#039;"
+    "&":"&amp;", "<":"&lt;", ">":"&gt;",
+    '"':"&quot;", "'":"&#039;"
   }[c]));
 }
 
 function categoriesFrom(value) {
-  return [...new Set(
-    String(value || "")
-      .split(",")
-      .map(x => x.trim())
-      .filter(Boolean)
-  )];
+  return [...new Set(String(value || "").split(",").map(x => x.trim()).filter(Boolean))];
 }
 
 function makeCode() {
@@ -324,13 +495,10 @@ function setText(id, value) {
   if ($(id)) $(id).textContent = value ?? "";
 }
 
-function logout() {
-  return auth.signOut();
-}
+function logout() { return auth.signOut(); }
 
 $("headerLogout").onclick = logout;
 $("setupLogout").onclick = logout;
-
 $("tabLogin").onclick = () => setAuthMode("login");
 $("tabRegister").onclick = () => setAuthMode("register");
 
@@ -338,28 +506,23 @@ function setAuthMode(mode) {
   authMode = mode;
   $("tabLogin").classList.toggle("active", mode === "login");
   $("tabRegister").classList.toggle("active", mode === "register");
-  $("authSubmitBtn").textContent =
-    mode === "login" ? "Iniciar sesión" : "Crear cuenta";
+  $("authSubmitBtn").textContent = mode === "login" ? "Iniciar sesión" : "Crear cuenta";
   error("authError", "");
 }
 
 $("authForm").addEventListener("submit", async e => {
   e.preventDefault();
-
   const email = $("authEmail").value.trim();
   const password = $("authPassword").value;
   const button = $("authSubmitBtn");
-
   button.disabled = true;
   error("authError", "");
 
   try {
     if (authMode === "register") {
       const cred = await auth.createUserWithEmailAndPassword(email, password);
-
       await db.collection("users").doc(cred.user.uid).set({
-        email,
-        businessIds: [],
+        email, businessIds: [],
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
     } else {
@@ -367,15 +530,14 @@ $("authForm").addEventListener("submit", async e => {
     }
   } catch (err) {
     const msgs = {
-      "auth/email-already-in-use": "Ese correo ya tiene una cuenta.",
-      "auth/invalid-email": "El correo no es válido.",
-      "auth/weak-password": "La contraseña debe tener al menos 6 caracteres.",
-      "auth/user-not-found": "No existe una cuenta con ese correo.",
-      "auth/wrong-password": "La contraseña es incorrecta.",
-      "auth/invalid-credential": "Correo o contraseña incorrectos.",
-      "auth/network-request-failed": "Revisá tu conexión."
+      "auth/email-already-in-use":"Ese correo ya tiene una cuenta.",
+      "auth/invalid-email":"El correo no es válido.",
+      "auth/weak-password":"La contraseña debe tener al menos 6 caracteres.",
+      "auth/user-not-found":"No existe una cuenta con ese correo.",
+      "auth/wrong-password":"La contraseña es incorrecta.",
+      "auth/invalid-credential":"Correo o contraseña incorrectos.",
+      "auth/network-request-failed":"Revisá tu conexión."
     };
-
     error("authError", msgs[err.code] || err.message || "No se pudo iniciar sesión.");
   } finally {
     button.disabled = false;
@@ -387,13 +549,10 @@ $("tabJoinBiz").onclick = () => setBusinessMode("join");
 
 function setBusinessMode(mode) {
   const create = mode === "create";
-
   $("tabCreateBiz").classList.toggle("active", create);
   $("tabJoinBiz").classList.toggle("active", !create);
-
   show(create ? "createBizForm" : "joinBizForm");
   hide(create ? "joinBizForm" : "createBizForm");
-
   error("setupError", "");
 }
 
@@ -401,10 +560,7 @@ function clearListeners() {
   [productUnsubscribe, salesUnsubscribe, businessUnsubscribe].forEach(fn => {
     if (fn) fn();
   });
-
-  productUnsubscribe = null;
-  salesUnsubscribe = null;
-  businessUnsubscribe = null;
+  productUnsubscribe = salesUnsubscribe = businessUnsubscribe = null;
 }
 
 auth.onAuthStateChanged(async user => {
@@ -412,16 +568,13 @@ auth.onAuthStateChanged(async user => {
   clearListeners();
 
   if (!user) {
-    currentBusiness = null;
-    currentBusinessId = null;
+    currentBusiness = currentBusinessId = null;
     products = [];
     sales = [];
     businessList = [];
-
     hide("app");
     hide("setup");
     show("authScreen");
-
     $("userEmailDisplay").textContent = "";
     hide("headerLogout");
     return;
@@ -436,11 +589,7 @@ auth.onAuthStateChanged(async user => {
     let userSnap = await userRef.get();
 
     if (!userSnap.exists) {
-      await userRef.set({
-        email: user.email || "",
-        businessIds: []
-      }, { merge: true });
-
+      await userRef.set({ email:user.email || "", businessIds:[] }, { merge:true });
       userSnap = await userRef.get();
     }
 
@@ -449,35 +598,21 @@ auth.onAuthStateChanged(async user => {
 
     for (const id of ids) {
       const snap = await db.collection("businesses").doc(id).get();
-
-      if (
-        snap.exists &&
-        (snap.data().memberUids || []).includes(user.uid)
-      ) {
-        businessList.push({
-          id: snap.id,
-          ...snap.data()
-        });
+      if (snap.exists && (snap.data().memberUids || []).includes(user.uid)) {
+        businessList.push({ id:snap.id, ...snap.data() });
       }
     }
 
     const saved = localStorage.getItem("stockeaBusinessId");
     const found = businessList.find(b => b.id === saved);
 
-    if (found) {
-      await openBusiness(found.id);
-    } else if (businessList.length === 1) {
-      await openBusiness(businessList[0].id);
-    } else {
-      showBusinessSetup();
-    }
+    if (found) await openBusiness(found.id);
+    else if (businessList.length === 1) await openBusiness(businessList[0].id);
+    else showBusinessSetup();
   } catch (err) {
     console.error(err);
     showBusinessSetup();
-    error(
-      "setupError",
-      "No se pudieron cargar los negocios. Revisá las reglas de Firestore."
-    );
+    error("setupError", "No se pudieron cargar los negocios. Revisá las reglas de Firestore.");
   }
 });
 
@@ -487,10 +622,6 @@ function showBusinessSetup() {
   setBusinessMode("create");
 }
 
-/*
- * CREAR NEGOCIO
- * La invitación se registra en openBusiness después de crear el negocio.
- */
 $("createBizForm").addEventListener("submit", async e => {
   e.preventDefault();
   if (!currentUser) return;
@@ -515,39 +646,26 @@ $("createBizForm").addEventListener("submit", async e => {
     const batch = db.batch();
 
     batch.set(businessRef, {
-      name,
-      owners,
-      type,
-      categories,
-      accessCode: code,
-      ownerUid: currentUser.uid,
-      memberUids: [currentUser.uid],
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      name, owners, type, categories, accessCode:code,
+      ownerUid:currentUser.uid, memberUids:[currentUser.uid],
+      createdAt:firebase.firestore.FieldValue.serverTimestamp()
     });
 
     batch.set(db.collection("users").doc(currentUser.uid), {
-      email: currentUser.email || "",
-      businessIds: firebase.firestore.FieldValue.arrayUnion(businessRef.id)
-    }, { merge: true });
+      email:currentUser.email || "",
+      businessIds:firebase.firestore.FieldValue.arrayUnion(businessRef.id)
+    }, { merge:true });
 
     await batch.commit();
     await openBusiness(businessRef.id);
   } catch (err) {
-    console.error("Error al crear negocio:", err);
-    error(
-      "setupError",
-      err.message || "No se pudo crear el negocio."
-    );
+    console.error(err);
+    error("setupError", err.message || "No se pudo crear el negocio.");
   } finally {
     if (button) button.disabled = false;
   }
 });
 
-/*
- * UNIRSE A UN NEGOCIO
- * Busca el código como ID de documento en "invitaciones".
- * No hace una consulta general a la colección "businesses".
- */
 $("joinBizForm").addEventListener("submit", async e => {
   e.preventDefault();
   if (!currentUser) return;
@@ -564,88 +682,44 @@ $("joinBizForm").addEventListener("submit", async e => {
   error("setupError", "");
 
   try {
-    const invitationRef = db.collection("invitaciones").doc(code);
-    const invitationSnap = await invitationRef.get();
+    const invitationSnap = await db.collection("invitaciones").doc(code).get();
 
     if (!invitationSnap.exists) {
-      throw new Error(
-        "No encontramos ese código. Pedile al dueño que abra su negocio y revise la invitación."
-      );
+      throw new Error("No encontramos ese código de invitación.");
     }
 
-    const invitation = invitationSnap.data();
-    const businessId = invitation.businessId;
+    const businessId = invitationSnap.data().businessId;
+    if (!businessId) throw new Error("El código de invitación no es válido.");
 
-    if (!businessId) {
-      throw new Error("El código de invitación no es válido.");
-    }
-
-    const businessRef = db.collection("businesses").doc(businessId);
-
-    /*
-     * No leemos el documento del negocio antes de unirnos:
-     * las reglas pueden impedir que un usuario que todavía
-     * no es miembro lo lea.
-     *
-     * Firestore valida la actualización mediante sus reglas.
-     */
     const batch = db.batch();
-
-    batch.update(businessRef, {
-      memberUids: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
+    batch.update(db.collection("businesses").doc(businessId), {
+      memberUids:firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
     });
-
     batch.set(db.collection("users").doc(currentUser.uid), {
-      email: currentUser.email || "",
-      businessIds: firebase.firestore.FieldValue.arrayUnion(businessId)
-    }, { merge: true });
+      email:currentUser.email || "",
+      businessIds:firebase.firestore.FieldValue.arrayUnion(businessId)
+    }, { merge:true });
 
     await batch.commit();
     await openBusiness(businessId);
   } catch (err) {
-    console.error("Error al unirse al negocio:", err);
-
-    if (err.code === "permission-denied") {
-      error(
-        "setupError",
-        "Firebase bloqueó el acceso. Revisá las reglas de Firestore."
-      );
-    } else {
-      error(
-        "setupError",
-        err.message || "No se pudo ingresar al negocio."
-      );
-    }
+    console.error(err);
+    error("setupError", err.message || "No se pudo ingresar al negocio.");
   } finally {
     if (button) button.disabled = false;
   }
 });
 
-/*
- * ABRIR NEGOCIO
- * Crea la invitación para negocios existentes que todavía
- * no tengan un documento en la colección "invitaciones".
- */
 async function openBusiness(id) {
   clearListeners();
-
   const snap = await db.collection("businesses").doc(id).get();
-
-  if (!snap.exists) {
-    throw new Error("El negocio no existe.");
-  }
+  if (!snap.exists) throw new Error("El negocio no existe.");
 
   const data = snap.data();
-
   if (!(data.memberUids || []).includes(currentUser.uid)) {
     throw new Error("No tenés acceso a este negocio.");
   }
-
-  if (!data.accessCode) {
-    throw new Error(
-      "Este negocio no tiene código de invitación. Revisá su configuración."
-    );
-  }
+  if (!data.accessCode) throw new Error("Este negocio no tiene código de invitación.");
 
   const code = String(data.accessCode).trim().toUpperCase();
   const invitationRef = db.collection("invitaciones").doc(code);
@@ -653,22 +727,15 @@ async function openBusiness(id) {
 
   if (!invitationSnap.exists) {
     await invitationRef.set({
-      businessId: id,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      businessId:id,
+      createdAt:firebase.firestore.FieldValue.serverTimestamp()
     });
   } else if (invitationSnap.data().businessId !== id) {
-    throw new Error(
-      "El código de invitación está asociado a otro negocio."
-    );
+    throw new Error("El código está asociado a otro negocio.");
   }
 
   currentBusinessId = id;
-  currentBusiness = {
-    id,
-    ...data,
-    accessCode: code
-  };
-
+  currentBusiness = { id, ...data, accessCode:code };
   localStorage.setItem("stockeaBusinessId", id);
 
   hide("authScreen");
@@ -678,7 +745,6 @@ async function openBusiness(id) {
   setText("welcome", data.name);
   setText("storeSubInfo", data.type);
   setText("displayStoreCode", code);
-
   $("editBiz").value = data.name || "";
   $("editOwners").value = data.owners || "";
   $("editType").value = data.type || "Otro";
@@ -693,64 +759,37 @@ function startListeners() {
   const base = db.collection("businesses").doc(currentBusinessId);
 
   productUnsubscribe = base.collection("products").onSnapshot(s => {
-    products = s.docs.map(d => ({
-      id: d.id,
-      ...d.data()
-    }));
-
+    products = s.docs.map(d => ({ id:d.id, ...d.data() }));
     renderProducts();
     renderDashboard();
-  }, e => {
-    console.error("Productos:", e);
-  });
+  }, e => console.error("Productos:", e));
 
   salesUnsubscribe = base.collection("sales").onSnapshot(s => {
-    sales = s.docs.map(d => ({
-      id: d.id,
-      ...d.data()
-    }));
-
-    sales.sort((a, b) =>
-      (b.createdAt?.toMillis?.() || 0) -
-      (a.createdAt?.toMillis?.() || 0)
-    );
-
+    sales = s.docs.map(d => ({ id:d.id, ...d.data() }));
+    sales.sort((a,b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
     renderSales();
     renderDashboard();
-  }, e => {
-    console.error("Ventas:", e);
-  });
+  }, e => console.error("Ventas:", e));
 
   businessUnsubscribe = base.onSnapshot(s => {
     if (!s.exists) return;
-
-    currentBusiness = {
-      id: s.id,
-      ...s.data()
-    };
-
+    currentBusiness = { id:s.id, ...s.data() };
     setText("welcome", currentBusiness.name);
     setText("storeSubInfo", currentBusiness.type);
     setText("displayStoreCode", currentBusiness.accessCode);
-
     $("editBiz").value = currentBusiness.name || "";
     $("editOwners").value = currentBusiness.owners || "";
     $("editType").value = currentBusiness.type || "Otro";
-    $("editCategories").value =
-      (currentBusiness.categories || []).join(", ");
-
+    $("editCategories").value = (currentBusiness.categories || []).join(", ");
     updateCategoryOptions();
-  }, e => {
-    console.error("Negocio:", e);
-  });
+  }, e => console.error("Negocio:", e));
 }
 
 function showPage(page) {
   document.querySelectorAll("[data-page]").forEach(b => {
     b.classList.toggle("active", b.dataset.page === page);
   });
-
-  ["dashboard", "stock", "sales", "settings"].forEach(id => {
+  ["dashboard","stock","sales","settings"].forEach(id => {
     $(id).classList.toggle("hidden", id !== page);
   });
 }
@@ -761,11 +800,9 @@ document.querySelectorAll("[data-page]").forEach(b => {
 
 function updateCategoryOptions() {
   const cats = currentBusiness?.categories || [];
-
-  ["pCategory", "filterCategory"].forEach(id => {
+  ["pCategory","filterCategory"].forEach(id => {
     const select = $(id);
     const old = select.value;
-
     select.innerHTML = id === "filterCategory"
       ? '<option value="">Todas las categorías</option>'
       : '<option value="">Elegí una categoría</option>';
@@ -776,15 +813,11 @@ function updateCategoryOptions() {
       option.textContent = c;
       select.appendChild(option);
     });
-
-    if (cats.includes(old)) {
-      select.value = old;
-    }
+    if (cats.includes(old)) select.value = old;
   });
 }
 
 /* PRODUCTOS */
-
 $("addProductBtn").onclick = () => openProductForm();
 $("cancelProductBtn").onclick = () => resetProductForm();
 
@@ -803,10 +836,7 @@ function openProductForm(product = null) {
   $("pImage").value = "";
   $("pImageFile").value = "";
   $("imagePreview").innerHTML = "";
-
-  $("formTitle").textContent = product
-    ? "Editar producto"
-    : "Nuevo producto";
+  $("formTitle").textContent = product ? "Editar producto" : "Nuevo producto";
 
   if (product) {
     $("pName").value = product.name || "";
@@ -818,54 +848,30 @@ function openProductForm(product = null) {
     $("pQty").value = product.qty ?? 0;
     $("pCode").value = product.code || "";
     $("pImage").value = product.image || "";
-
     $("imagePreview").innerHTML = product.image
       ? `<img src="${product.image}" style="max-width:120px;border-radius:10px" alt="Vista previa">`
       : "";
   }
-
   show("productFormPanel");
 }
 
 function compressImage(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-
-    reader.onerror = () => reject(
-      new Error("No se pudo leer la imagen.")
-    );
-
+    reader.onerror = () => reject(new Error("No se pudo leer la imagen."));
     reader.onload = () => {
       const img = new Image();
-
-      img.onerror = () => reject(
-        new Error("Imagen inválida.")
-      );
-
+      img.onerror = () => reject(new Error("Imagen inválida."));
       img.onload = () => {
-        const scale = Math.min(
-          1,
-          400 / Math.max(img.width, img.height)
-        );
-
+        const scale = Math.min(1, 400 / Math.max(img.width, img.height));
         const canvas = document.createElement("canvas");
         canvas.width = Math.max(1, Math.round(img.width * scale));
         canvas.height = Math.max(1, Math.round(img.height * scale));
-
-        canvas.getContext("2d").drawImage(
-          img,
-          0,
-          0,
-          canvas.width,
-          canvas.height
-        );
-
+        canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
         resolve(canvas.toDataURL("image/jpeg", 0.7));
       };
-
       img.src = reader.result;
     };
-
     reader.readAsDataURL(file);
   });
 }
@@ -873,15 +879,10 @@ function compressImage(file) {
 $("pImageFile").addEventListener("change", async e => {
   const file = e.target.files?.[0];
   if (!file) return;
-
   try {
-    if (!file.type.startsWith("image/")) {
-      throw new Error("Elegí una imagen.");
-    }
-
+    if (!file.type.startsWith("image/")) throw new Error("Elegí una imagen.");
     const image = await compressImage(file);
     $("pImage").value = image;
-
     $("imagePreview").innerHTML =
       `<img src="${image}" style="max-width:120px;border-radius:10px" alt="Vista previa">`;
   } catch (err) {
@@ -897,15 +898,9 @@ $("productForm").addEventListener("submit", async e => {
   const price = Number($("pPrice").value);
   const qty = Number($("pQty").value);
 
-  if (
-    !Number.isFinite(cost) ||
-    !Number.isFinite(price) ||
-    !Number.isFinite(qty) ||
-    cost < 0 ||
-    price <= 0 ||
-    qty < 0 ||
-    !Number.isInteger(qty)
-  ) {
+  if (!Number.isFinite(cost) || !Number.isFinite(price) ||
+      !Number.isFinite(qty) || cost < 0 || price <= 0 ||
+      qty < 0 || !Number.isInteger(qty)) {
     alert("Revisá los precios y la cantidad.");
     return;
   }
@@ -915,35 +910,29 @@ $("productForm").addEventListener("submit", async e => {
 
   try {
     const data = {
-      name: $("pName").value.trim(),
-      category: $("pCategory").value,
-      color: $("pColor").value.trim(),
-      colorCode: $("pColorCode").value,
-      cost,
-      price,
-      qty,
-      code: $("pCode").value.trim(),
-      image: $("pImage").value || "",
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      name:$("pName").value.trim(),
+      category:$("pCategory").value,
+      color:$("pColor").value.trim(),
+      colorCode:$("pColorCode").value,
+      cost, price, qty,
+      code:$("pCode").value.trim(),
+      image:$("pImage").value || "",
+      updatedAt:firebase.firestore.FieldValue.serverTimestamp()
     };
 
     if (!data.name || !data.category) {
       throw new Error("Completá el nombre y la categoría.");
     }
 
-    const col = db.collection("businesses")
-      .doc(currentBusinessId)
-      .collection("products");
-
+    const col = db.collection("businesses").doc(currentBusinessId).collection("products");
     if (editingProductId) {
       await col.doc(editingProductId).update(data);
     } else {
       await col.add({
         ...data,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        createdAt:firebase.firestore.FieldValue.serverTimestamp()
       });
     }
-
     resetProductForm();
   } catch (err) {
     console.error(err);
@@ -956,55 +945,77 @@ $("productForm").addEventListener("submit", async e => {
 $("search").oninput = renderProducts;
 $("filterCategory").onchange = renderProducts;
 
+/* CUADRÍCULA DE STOCK */
 function renderProducts() {
   const term = $("search").value.toLowerCase().trim();
   const cat = $("filterCategory").value;
 
   const list = products.filter(p =>
     (!cat || p.category === cat) &&
-    [p.name, p.category, p.color, p.code].some(v =>
+    [p.name,p.category,p.color,p.code].some(v =>
       String(v || "").toLowerCase().includes(term)
     )
   );
 
+  const container = $("productList");
+  container.className = "product-grid";
+
   if (!list.length) {
-    $("productList").innerHTML =
-      '<div class="empty">Todavía no hay productos o no hay coincidencias.</div>';
+    container.innerHTML = `
+      <div class="empty">
+        <div style="font-size:34px;margin-bottom:10px">📦</div>
+        <strong>No hay productos para mostrar</strong>
+        <p>Agregá un producto o probá otra búsqueda.</p>
+      </div>`;
     return;
   }
 
-  $("productList").innerHTML = list.map(p => `
-    <div class="product">
-      ${p.image
-        ? `<img class="thumb" src="${p.image}" alt="">`
-        : '<div class="thumb" style="display:grid;place-items:center;background:#0c1426">📦</div>'
-      }
-      <div class="product-info">
-        <strong>${clean(p.name)}</strong>
-        <p>${clean(p.category)} · ${clean(p.color || "Sin detalle")}</p>
-        <p>Stock: <b>${Number(p.qty) || 0}</b> · Precio: <b>${money(p.price)}</b></p>
-        <p>Costo: ${money(p.cost)} · Código: ${clean(p.code || "—")}</p>
-      </div>
-      <div class="product-actions">
-        <button data-edit="${p.id}">Editar</button>
-        <button data-sell="${p.id}">Vender</button>
-        <button class="danger" data-del="${p.id}">Eliminar</button>
-      </div>
-    </div>
-  `).join("");
+  container.innerHTML = list.map(p => {
+    const qty = Number(p.qty) || 0;
+    const color = /^#[0-9a-f]{6}$/i.test(p.colorCode || "")
+      ? p.colorCode : "#568cff";
+    const stockClass = qty <= 0 ? "out" : qty <= 3 ? "low" : "";
+    const stockText = qty <= 0 ? "Agotado" : qty <= 3 ? "Stock bajo" : "Disponible";
 
-  $("productList").querySelectorAll("[data-edit]").forEach(b => {
+    return `
+      <article class="product-card">
+        <div class="product-image">
+          ${p.image
+            ? `<img src="${p.image}" alt="${clean(p.name)}" loading="lazy">`
+            : `<div class="product-placeholder">📦</div>`}
+        </div>
+        <div class="product-card-body">
+          <div class="product-category">${clean(p.category || "Sin categoría")}</div>
+          <div class="product-name"><strong>${clean(p.name)}</strong></div>
+          <div class="product-color">
+            <span class="product-color-dot" style="background-color:${color}"></span>
+            <span>${clean(p.color || "Sin color especificado")}</span>
+          </div>
+          <div class="product-price">${money(p.price)}</div>
+          <div class="product-cost">Costo: ${money(p.cost)}</div>
+          <div class="product-stock">
+            <span>Stock: <b>${qty}</b></span>
+            <span class="stock-status ${stockClass}">${stockText}</span>
+          </div>
+        </div>
+        <div class="product-actions">
+          <button type="button" data-edit="${p.id}">Editar</button>
+          <button type="button" data-sell="${p.id}">Vender</button>
+          <button type="button" class="danger" data-del="${p.id}">Eliminar</button>
+        </div>
+      </article>`;
+  }).join("");
+
+  container.querySelectorAll("[data-edit]").forEach(b => {
     b.onclick = () => {
       const product = products.find(p => p.id === b.dataset.edit);
       if (product) openProductForm(product);
     };
   });
-
-  $("productList").querySelectorAll("[data-sell]").forEach(b => {
+  container.querySelectorAll("[data-sell]").forEach(b => {
     b.onclick = () => sellProduct(b.dataset.sell);
   });
-
-  $("productList").querySelectorAll("[data-del]").forEach(b => {
+  container.querySelectorAll("[data-del]").forEach(b => {
     b.onclick = () => deleteProduct(b.dataset.del);
   });
 }
@@ -1012,13 +1023,9 @@ function renderProducts() {
 async function deleteProduct(id) {
   const p = products.find(x => x.id === id);
   if (!p || !confirm(`¿Eliminar "${p.name}"?`)) return;
-
   try {
-    await db.collection("businesses")
-      .doc(currentBusinessId)
-      .collection("products")
-      .doc(id)
-      .delete();
+    await db.collection("businesses").doc(currentBusinessId)
+      .collection("products").doc(id).delete();
   } catch (e) {
     alert("No se pudo eliminar el producto.");
     console.error(e);
@@ -1026,19 +1033,14 @@ async function deleteProduct(id) {
 }
 
 /* VENTAS */
-
 async function sellProduct(id) {
   const p = products.find(x => x.id === id);
   if (!p) return;
 
-  const raw = prompt(
-    `Producto: ${p.name}\nStock: ${p.qty}\n¿Cuántas unidades vendiste?`
-  );
-
+  const raw = prompt(`Producto: ${p.name}\nStock: ${p.qty}\n¿Cuántas unidades vendiste?`);
   if (raw === null) return;
 
   const qty = Number(raw);
-
   if (!Number.isInteger(qty) || qty <= 0) {
     alert("Ingresá una cantidad válida.");
     return;
@@ -1051,40 +1053,33 @@ async function sellProduct(id) {
   try {
     await db.runTransaction(async t => {
       const snap = await t.get(productRef);
-
-      if (!snap.exists) {
-        throw new Error("El producto ya no existe.");
-      }
+      if (!snap.exists) throw new Error("El producto ya no existe.");
 
       const data = snap.data();
       const available = Number(data.qty) || 0;
-
-      if (available < qty) {
-        throw new Error("No hay suficiente stock.");
-      }
+      if (available < qty) throw new Error("No hay suficiente stock.");
 
       const price = Number(data.price) || 0;
       const cost = Number(data.cost) || 0;
 
       t.update(productRef, {
-        qty: available - qty,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        qty:available - qty,
+        updatedAt:firebase.firestore.FieldValue.serverTimestamp()
       });
-
       t.set(saleRef, {
-        productId: id,
-        productName: data.name,
-        category: data.category,
-        quantity: qty,
-        unitPrice: price,
-        unitCost: cost,
-        total: price * qty,
-        profit: (price - cost) * qty,
-        createdBy: currentUser.uid,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        productId:id,
+        productName:data.name,
+        category:data.category,
+        color:data.color || "",
+        quantity:qty,
+        unitPrice:price,
+        unitCost:cost,
+        total:price * qty,
+        profit:(price - cost) * qty,
+        createdBy:currentUser.uid,
+        createdAt:firebase.firestore.FieldValue.serverTimestamp()
       });
     });
-
     alert("¡Venta registrada!");
   } catch (e) {
     alert(e.message || "No se pudo registrar la venta.");
@@ -1098,25 +1093,17 @@ function renderSales() {
         const date = s.createdAt?.toDate
           ? s.createdAt.toDate().toLocaleString("es-AR")
           : "Fecha pendiente";
-
-        return `
-          <div class="sale">
-            <div>
-              <strong>${clean(s.productName)}</strong>
-              <p>${clean(date)} · Cantidad: ${Number(s.quantity) || 0}</p>
-            </div>
-            <div>
-              <strong>${money(s.total)}</strong>
-              <p>Ganancia: ${money(s.profit)}</p>
-            </div>
-          </div>
-        `;
+        return `<div class="sale">
+          <div><strong>${clean(s.productName)}</strong>
+          <p>${clean(date)} · Cantidad: ${Number(s.quantity)||0}</p></div>
+          <div><strong>${money(s.total)}</strong>
+          <p>Ganancia: ${money(s.profit)}</p></div>
+        </div>`;
       }).join("")
     : '<p class="empty">Todavía no hay ventas.</p>';
 }
 
 /* RESUMEN Y FINANZAS */
-
 $("periodFilter").onchange = renderDashboard;
 
 function renderDashboard() {
@@ -1124,14 +1111,13 @@ function renderDashboard() {
   const now = new Date();
   const start = new Date(now);
 
-  if (period === "today") {
-    start.setHours(0, 0, 0, 0);
-  } else if (period === "week") {
+  if (period === "today") start.setHours(0,0,0,0);
+  else if (period === "week") {
     start.setDate(start.getDate() - 6);
-    start.setHours(0, 0, 0, 0);
+    start.setHours(0,0,0,0);
   } else if (period === "month") {
     start.setDate(1);
-    start.setHours(0, 0, 0, 0);
+    start.setHours(0,0,0,0);
   }
 
   const filtered = sales.filter(s => {
@@ -1140,70 +1126,32 @@ function renderDashboard() {
     return date && date >= start;
   });
 
-  setText(
-    "statSales",
-    money(filtered.reduce((a, s) => a + (Number(s.total) || 0), 0))
-  );
-
-  setText(
-    "statProfit",
-    money(filtered.reduce((a, s) => a + (Number(s.profit) || 0), 0))
-  );
-
-  setText(
-    "statStock",
-    products.reduce((a, p) => a + (Number(p.qty) || 0), 0)
-  );
-
-  setText(
-    "statValue",
-    money(products.reduce(
-      (a, p) => a + (Number(p.qty) || 0) * (Number(p.cost) || 0),
-      0
-    ))
-  );
+  setText("statSales", money(filtered.reduce((a,s) => a + (Number(s.total)||0),0)));
+  setText("statProfit", money(filtered.reduce((a,s) => a + (Number(s.profit)||0),0)));
+  setText("statStock", products.reduce((a,p) => a + (Number(p.qty)||0),0));
+  setText("statValue", money(products.reduce((a,p) => a + (Number(p.qty)||0)*(Number(p.cost)||0),0)));
 
   const counts = {};
-
   filtered.forEach(s => {
     const key = s.productId || s.productName;
-
-    if (!counts[key]) {
-      counts[key] = {
-        name: s.productName,
-        qty: 0
-      };
-    }
-
-    counts[key].qty += Number(s.quantity) || 0;
+    if (!counts[key]) counts[key] = { name:s.productName, qty:0 };
+    counts[key].qty += Number(s.quantity)||0;
   });
 
-  const top = Object.values(counts).sort((a, b) => b.qty - a.qty)[0];
+  const top = Object.values(counts).sort((a,b) => b.qty-a.qty)[0];
+  setText("topProduct", top ? `${top.name} (${top.qty} unidades)` : "Todavía no hay ventas.");
 
-  setText(
-    "topProduct",
-    top ? `${top.name} (${top.qty} unidades)` : "Todavía no hay ventas."
-  );
-
-  $("recentSales").innerHTML = filtered.slice(0, 5).map(s => `
-    <div class="sale">
-      <span>${clean(s.productName)} · ${Number(s.quantity) || 0} u.</span>
-      <b>${money(s.total)}</b>
-    </div>
-  `).join("") || '<p class="empty">Todavía no hay ventas.</p>';
+  $("recentSales").innerHTML = filtered.slice(0,5).map(s =>
+    `<div class="sale"><span>${clean(s.productName)} · ${Number(s.quantity)||0} u.</span><b>${money(s.total)}</b></div>`
+  ).join("") || '<p class="empty">Todavía no hay ventas.</p>';
 
   const low = products.filter(p => Number(p.qty) <= 3);
-
-  $("lowStock").innerHTML = low.map(p => `
-    <div class="sale">
-      <span>${clean(p.name)}</span>
-      <b>${Number(p.qty) || 0} disponibles</b>
-    </div>
-  `).join("") || '<p class="empty">No hay productos con stock bajo.</p>';
+  $("lowStock").innerHTML = low.map(p =>
+    `<div class="sale"><span>${clean(p.name)}</span><b>${Number(p.qty)||0} disponibles</b></div>`
+  ).join("") || '<p class="empty">No hay productos con stock bajo.</p>';
 }
 
 /* CONFIGURACIÓN DEL NEGOCIO */
-
 $("settingsForm").addEventListener("submit", async e => {
   e.preventDefault();
   if (!currentBusinessId) return;
@@ -1220,13 +1168,9 @@ $("settingsForm").addEventListener("submit", async e => {
 
   try {
     await db.collection("businesses").doc(currentBusinessId).update({
-      name,
-      owners,
-      type,
-      categories,
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      name, owners, type, categories,
+      updatedAt:firebase.firestore.FieldValue.serverTimestamp()
     });
-
     alert("Configuración guardada.");
   } catch (err) {
     console.error(err);
@@ -1237,7 +1181,6 @@ $("settingsForm").addEventListener("submit", async e => {
 $("copyStoreCode").onclick = async () => {
   const code = currentBusiness?.accessCode;
   if (!code) return;
-
   try {
     await navigator.clipboard.writeText(code);
     alert("Código copiado: " + code);
@@ -1247,4 +1190,4 @@ $("copyStoreCode").onclick = async () => {
 };
 </script>
 </body>
-            </html>
+</html>
