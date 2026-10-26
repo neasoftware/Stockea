@@ -3,7 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Stockeá — Gestión de negocio</title>
+<title>Stockeá — Gestión de negocio en la nube</title>
+
+<!-- Firebase SDKs (Compatiblity Layer para CDN) -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
 <style>
 :root{--bg:#0b1020;--panel:#141d31;--line:#293650;--blue:#568cff;
 --txt:#f2f5ff;--muted:#95a3bd;--green:#35d49a;--red:#ff7184;--yellow:#ffcb77}
@@ -65,10 +71,12 @@ display:flex;align-items:center;justify-content:center}
 .empty{text-align:center;color:var(--muted);padding:24px 4px}
 .hidden{display:none!important}
 .notice{font-size:12px;color:var(--muted);line-height:1.6;margin-top:20px}
+.auth-box{max-width:420px;margin:60px auto;padding:25px}
+.auth-box button{width:100%;margin-top:10px}
+.tabs{display:flex;gap:10px;margin-bottom:20px}
+.tabs button{flex:1;background:transparent;border:1px solid var(--line);color:var(--muted)}
+.tabs button.active{background:var(--blue);color:white;border-color:var(--blue)}
 #setup{max-width:650px;margin:35px auto;padding:25px}
-#setup .logo{margin-bottom:18px}
-#setup h1{margin-bottom:10px}
-#setup .sub{line-height:1.5}
 #setup button{width:100%;margin-top:7px}
 @media(max-width:650px){
  .layout{display:block}
@@ -88,18 +96,37 @@ display:flex;align-items:center;justify-content:center}
 </style>
 </head>
 <body>
+
 <header>
  <div class="logo">Stockeá<span>.</span></div>
- <small id="businessHeader">Tu negocio</small>
+ <small id="businessHeader">Cargando...</small>
 </header>
 
+<!-- PANTALLA DE LOGIN / REGISTRO -->
+<div id="authScreen" class="auth-box panel">
+ <div class="logo" style="text-align:center;margin-bottom:20px">Stockeá<span>.</span></div>
+ <div class="tabs">
+  <button id="tabLogin" class="active" onclick="toggleAuthTab('login')">Ingresar</button>
+  <button id="tabRegister" onclick="toggleAuthTab('register')">Crear cuenta</button>
+ </div>
+ <form id="authForm">
+  <div class="field"><label>Correo electrónico</label>
+   <input id="authEmail" type="email" required placeholder="tu@email.com"></div>
+  <div class="field"><label>Contraseña</label>
+   <input id="authPassword" type="password" required placeholder="••••••••"></div>
+  <button type="submit" id="authSubmitBtn">Iniciar sesión</button>
+ </form>
+ <p id="authError" style="color:var(--red);font-size:13px;margin-top:12px;text-align:center" class="hidden"></p>
+</div>
+
+<!-- CONFIGURACIÓN INICIAL DEL NEGOCIO -->
 <div id="setup" class="panel hidden">
  <div class="logo">Stockeá<span>.</span></div>
  <h1>Configuremos tu negocio</h1>
- <p class="sub">Completá estos datos una sola vez. Después vas a poder administrar tus productos y ventas.</p>
+ <p class="sub">Completá estos datos para sincronizar con la nube.</p>
  <form id="setupForm">
   <div class="field"><label>Nombre del negocio *</label>
-   <input id="bizName" required placeholder="Ej. SB Tech"></div>
+   <input id="bizName" required placeholder="Ej. Mi Emprendimiento"></div>
   <div class="field"><label>Dueños *</label>
    <input id="owners" required placeholder="Ej. Bruno y Santi"></div>
   <div class="field"><label>Rubro del negocio</label>
@@ -110,18 +137,19 @@ display:flex;align-items:center;justify-content:center}
    </select>
   </div>
   <div class="field"><label>Categorías de productos *</label>
-   <input id="categories" required value="Auriculares, Cargadores, Cables, Otros"
-    placeholder="Separá las categorías con comas"></div>
+   <input id="categories" required value="General, Otros" placeholder="Separá las categorías con comas"></div>
   <button type="submit">Crear mi negocio →</button>
  </form>
 </div>
 
+<!-- APLICACIÓN PRINCIPAL -->
 <div id="app" class="layout hidden">
  <nav>
   <button class="active" data-page="dashboard">⌂ Resumen</button>
   <button data-page="stock">▦ Stock</button>
   <button data-page="sales">↗ Ventas</button>
   <button data-page="settings">⚙ Mi negocio</button>
+  <button onclick="logout()" style="margin-top:20px;color:var(--red)">🔒 Cerrar sesión</button>
  </nav>
 
  <main>
@@ -150,7 +178,7 @@ display:flex;align-items:center;justify-content:center}
 
    <div class="panel">
     <h2>🏆 Producto estrella del período</h2>
-    <div id="topProduct"><div class="empty">Aún no hay ventas registradas en este período.</div></div>
+    <div id="topProduct"><div class="empty">Aún no hay ventas registradas.</div></div>
    </div>
 
    <div class="panel">
@@ -174,11 +202,11 @@ display:flex;align-items:center;justify-content:center}
     <form id="productForm">
      <div class="formgrid">
       <div class="field"><label>Nombre *</label>
-       <input id="pName" required placeholder="Ej. Auriculares Bluetooth"></div>
+       <input id="pName" required placeholder="Ej. Cargador Tipo C"></div>
       <div class="field"><label>Categoría *</label>
        <select id="pCategory" required></select></div>
       <div class="field"><label>Color / Detalle</label>
-       <input id="pColor" placeholder="Ej. Negro"></div>
+       <input id="pColor" placeholder="Ej. Blanco"></div>
       <div class="field"><label>Color de referencia (si no hay foto)</label>
        <input id="pColorCode" type="color" value="#568cff"></div>
       <div class="field"><label>Precio de costo por unidad ($) *</label>
@@ -188,7 +216,7 @@ display:flex;align-items:center;justify-content:center}
       <div class="field"><label>Cantidad disponible *</label>
        <input id="pQty" type="number" min="0" step="1" required></div>
       <div class="field"><label>Código (opcional)</label>
-       <input id="pCode" placeholder="Ej. AUD-001"></div>
+       <input id="pCode" placeholder="Ej. PROD-001"></div>
       <div class="field full"><label>Foto del producto (opcional)</label>
        <input id="pImageFile" type="file" accept="image/*" onchange="handleImage(event)">
        <input type="hidden" id="pImage">
@@ -208,14 +236,14 @@ display:flex;align-items:center;justify-content:center}
   </section>
 
   <section id="sales" class="hidden">
-   <h1>Ventas</h1><p class="sub">Historial completo con métodos de pago y ganancias.</p>
+   <h1>Ventas</h1><p class="sub">Historial completo sincronizado en tiempo real.</p>
    <div class="panel">
     <h2>Registro de ventas</h2><div id="allSales"></div>
    </div>
   </section>
 
   <section id="settings" class="hidden">
-   <h1>Mi negocio</h1><p class="sub">Configuración de tu emprendimiento.</p>
+   <h1>Mi negocio</h1><p class="sub">Configuración sincronizada en la nube.</p>
    <div class="panel">
     <form id="settingsForm">
      <div class="field"><label>Nombre del negocio</label><input id="editBiz" required></div>
@@ -229,60 +257,128 @@ display:flex;align-items:center;justify-content:center}
       <input id="editCategories" required></div>
      <button type="submit">Guardar cambios</button>
     </form>
-    
-    <hr style="border-color:var(--line);margin:24px 0">
-    <h2>Respaldo de datos (Backup)</h2>
-    <p class="sub">Descargá o cargá un archivo JSON para pasar tus datos a otro dispositivo.</p>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
-     <button type="button" class="secondary" onclick="exportData()">📥 Descargar Respaldo</button>
-     <button type="button" class="secondary" onclick="$('importFile').click()">📤 Cargar Respaldo</button>
-     <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
-    </div>
-
-    <hr style="border-color:var(--line);margin:24px 0">
-    <button class="danger" onclick="resetDemo()">Restablecer datos</button>
-    <p class="notice">Esto borra todo lo guardado en este navegador.</p>
    </div>
   </section>
 
-  <p class="notice">Stockeá v2.3 — Tus datos se guardan de forma local en este dispositivo.</p>
+  <p class="notice">Stockeá — Sistema de gestión en tiempo real con Firebase.</p>
  </main>
 </div>
 
 <script>
+// --- CONFIGURACIÓN DE FIREBASE ---
+const firebaseConfig = {
+  apiKey: "AIzaSyDVV2rWhu09PJBEIrwW3F97FZSS7c9_d1Y",
+  authDomain: "stockea-e4cd3.firebaseapp.com",
+  projectId: "stockea-e4cd3",
+  storageBucket: "stockea-e4cd3.firebasestorage.app",
+  messagingSenderId: "942317829839",
+  appId: "1:942317829839:web:d7589b9498ec999bc741ba",
+  measurementId: "G-W8WN7RMZN5"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
 const $=id=>document.getElementById(id);
 const money=n=>new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',maximumFractionDigits:2}).format(n);
-const initial={
- business:null,
- products:[
-  {id:1,name:'Auriculares Bluetooth',category:'Auriculares',color:'Negro',colorCode:'#222222',image:'',cost:8000,price:12000,qty:8,code:'AUD-001'},
-  {id:2,name:'Cargador USB-C',category:'Cargadores',color:'Blanco',colorCode:'#eeeeee',image:'',cost:3500,price:6000,qty:5,code:'CAR-001'},
-  {id:3,name:'Cable USB-C',category:'Cables',color:'Azul',colorCode:'#568cff',image:'',cost:1200,price:2500,qty:2,code:'CAB-001'}
- ],
- sales:[]
-};
-let db;
-try{db=JSON.parse(localStorage.getItem('stockea-v3'))||initial}
-catch(e){db=structuredClone(initial)}
-let editingId=null;
-
-function persist(){localStorage.setItem('stockea-v3',JSON.stringify(db));render()}
 function escapeHTML(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 
-function init(){
- if(!db.business){$('setup').classList.remove('hidden');$('app').classList.add('hidden')}
- else{
-  $('setup').classList.add('hidden');$('app').classList.remove('hidden');
-  render();page('dashboard');
- }
+let currentUser = null;
+let currentBusiness = null;
+let products = [];
+let sales = [];
+let editingId = null;
+let authMode = 'login';
+
+// --- CONTROL DE AUTENTICACIÓN ---
+function toggleAuthTab(mode){
+ authMode = mode;
+ $('tabLogin').classList.toggle('active', mode === 'login');
+ $('tabRegister').classList.toggle('active', mode === 'register');
+ $('authSubmitBtn').textContent = mode === 'login' ? 'Iniciar sesión' : 'Registrarse';
+ $('authError').classList.add('hidden');
 }
-$('setupForm').onsubmit=e=>{
+
+$('authForm').onsubmit = async e => {
  e.preventDefault();
- const cats=$('categories').value.split(',').map(s=>s.trim()).filter(Boolean);
- if(!cats.length)return alert('Agregá al menos una categoría.');
- db.business={name:$('bizName').value.trim(),owners:$('owners').value.trim(),type:$('businessType').value,categories:cats};
- persist();init();
+ const email = $('authEmail').value.trim();
+ const password = $('authPassword').value;
+ $('authError').classList.add('hidden');
+
+ try {
+  if (authMode === 'login') {
+   await auth.signInWithEmailAndPassword(email, password);
+  } else {
+   await auth.createUserWithEmailAndPassword(email, password);
+  }
+ } catch (err) {
+  $('authError').textContent = err.message;
+  $('authError').classList.remove('hidden');
+ }
 };
+
+function logout(){ auth.signOut(); }
+
+auth.onAuthStateChanged(user => {
+ currentUser = user;
+ if (user) {
+  $('authScreen').classList.add('hidden');
+  loadCloudData();
+ } else {
+  $('authScreen').classList.remove('hidden');
+  $('setup').classList.add('hidden');
+  $('app').classList.add('hidden');
+  $('businessHeader').textContent = 'No conectado';
+ }
+});
+
+// --- BASE DE DATOS EN TIEMPO REAL (FIRESTORE) ---
+function loadCloudData(){
+ const bizRef = db.collection('businesses').doc('shared_store');
+ 
+ // Escuchar datos del negocio
+ bizRef.onSnapshot(doc => {
+  if (doc.exists) {
+   currentBusiness = doc.data();
+   $('setup').classList.add('hidden');
+   $('app').classList.remove('hidden');
+   render();
+  } else {
+   $('setup').classList.remove('hidden');
+   $('app').classList.add('hidden');
+  }
+ });
+
+ // Escuchar productos
+ bizRef.collection('products').onSnapshot(snapshot => {
+  products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  render();
+ });
+
+ // Escuchar ventas
+ bizRef.collection('sales').onSnapshot(snapshot => {
+  sales = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  render();
+ });
+}
+
+$('setupForm').onsubmit = async e => {
+ e.preventDefault();
+ const cats = $('categories').value.split(',').map(s=>s.trim()).filter(Boolean);
+ if (!cats.length) return alert('Agregá al menos una categoría.');
+ 
+ const bizData = {
+  name: $('bizName').value.trim(),
+  owners: $('owners').value.trim(),
+  type: $('businessType').value,
+  categories: cats
+ };
+
+ await db.collection('businesses').doc('shared_store').set(bizData);
+};
+
+// --- NAVEGACIÓN Y RENDER ---
 function page(id){
  document.querySelectorAll('main section').forEach(s=>s.classList.add('hidden'));
  $(id).classList.remove('hidden');
@@ -290,290 +386,250 @@ function page(id){
  if(id==='stock')renderProducts();
  if(id==='sales')renderSales();
 }
-document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>page(b.dataset.page));
+document.querySelectorAll('nav button').forEach(b=>{
+ if(b.dataset.page) b.onclick=()=>page(b.dataset.page);
+});
 
 function fillCategories(){
- const cats=db.business?.categories||['Otros'];
- const options=cats.map(c=>`<option>${escapeHTML(c)}</option>`).join('');
- $('pCategory').innerHTML=options;
- $('filterCategory').innerHTML='<option value="">Todas las categorías</option>'+options;
+ const cats = currentBusiness?.categories || ['Otros'];
+ const options = cats.map(c=>`<option>${escapeHTML(c)}</option>`).join('');
+ $('pCategory').innerHTML = options;
+ $('filterCategory').innerHTML = '<option value="">Todas las categorías</option>' + options;
 }
 
 function filterSalesByPeriod(){
- const period=$('periodFilter').value;
- if(period==='all')return db.sales;
- const now=new Date();
- return db.sales.filter(s=>{
-  const d=new Date(s.timestamp||s.date);
-  if(period==='today'){
-   return d.toDateString()===now.toDateString();
-  }else if(period==='week'){
-   const startOfWeek=new Date(now);
-   startOfWeek.setDate(now.getDate()-now.getDay());
+ const period = $('periodFilter').value;
+ if (period === 'all') return sales;
+ const now = new Date();
+ return sales.filter(s => {
+  const d = new Date(s.timestamp || s.date);
+  if (period === 'today') return d.toDateString() === now.toDateString();
+  if (period === 'week') {
+   const startOfWeek = new Date(now);
+   startOfWeek.setDate(now.getDate() - now.getDay());
    startOfWeek.setHours(0,0,0,0);
-   return d>=startOfWeek;
-  }else if(period==='month'){
-   return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
+   return d >= startOfWeek;
   }
+  if (period === 'month') return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
   return true;
  });
 }
 
 function render(){
- if(!db.business)return;
- $('businessHeader').textContent=db.business.name;
- $('welcome').textContent='¡Hola, '+db.business.owners.split(' ')[0]+'! 👋';
+ if (!currentBusiness) return;
+ $('businessHeader').textContent = currentBusiness.name;
+ $('welcome').textContent = '¡Hola, ' + currentBusiness.owners.split(' ')[0] + '! 👋';
  fillCategories();
 
- const filteredSales=filterSalesByPeriod();
- const sold=filteredSales.reduce((s,v)=>s+v.total,0);
- const profit=filteredSales.reduce((s,v)=>s+v.profit,0);
- const stock=db.products.reduce((s,p)=>s+p.qty,0);
- const value=db.products.reduce((s,p)=>s+p.qty*p.cost,0);
+ const filteredSales = filterSalesByPeriod();
+ const sold = filteredSales.reduce((s,v)=>s+v.total,0);
+ const profit = filteredSales.reduce((s,v)=>s+v.profit,0);
+ const stockQty = products.reduce((s,p)=>s+p.qty,0);
+ const value = products.reduce((s,p)=>s+(p.qty*p.cost),0);
 
- $('statSales').textContent=money(sold);
- $('statProfit').textContent=money(profit);
- $('statStock').textContent=stock;
- $('statValue').textContent=money(value);
+ $('statSales').textContent = money(sold);
+ $('statProfit').textContent = money(profit);
+ $('statStock').textContent = stockQty;
+ $('statValue').textContent = money(value);
 
- // Top product in period
- const productSales={};
- filteredSales.forEach(s=>{
-  productSales[s.name]=(productSales[s.name]||0)+(s.qtySold||1);
- });
- const sortedTop=Object.entries(productSales).sort((a,b)=>b[1]-a[1]);
- if(sortedTop.length){
-  $('topProduct').innerHTML=`<div class="product"><div class="pinfo"><b>⭐ ${escapeHTML(sortedTop[0][0])}</b><small>Unidades vendidas en el período: <b>${sortedTop[0][1]}</b></small></div></div>`;
- }else{
-  $('topProduct').innerHTML='<div class="empty">Aún no hay ventas registradas en este período.</div>';
- }
+ const productSales = {};
+ filteredSales.forEach(s => { productSales[s.name] = (productSales[s.name] || 0) + (s.qtySold || 1); });
+ const sortedTop = Object.entries(productSales).sort((a,b)=>b[1]-a[1]);
+ $('topProduct').innerHTML = sortedTop.length ?
+  `<div class="product"><div class="pinfo"><b>⭐ ${escapeHTML(sortedTop[0][0])}</b><small>Unidades vendidas: <b>${sortedTop[0][1]}</b></small></div></div>` :
+  '<div class="empty">Aún no hay ventas registradas.</div>';
 
- $('recentSales').innerHTML=filteredSales.length?
-  filteredSales.slice(-4).reverse().map(saleRow).join(''):
+ $('recentSales').innerHTML = filteredSales.length ?
+  filteredSales.slice(-4).reverse().map(saleRow).join('') :
   '<div class="empty">No hay ventas en este período.</div>';
 
- const low=db.products.filter(p=>p.qty<=3);
- $('lowStock').innerHTML=low.length?low.map(p=>
-  `<div class="product"><div class="pinfo"><b>${escapeHTML(p.name)}</b>
-  <small>Quedan ${p.qty} unidades</small></div><span class="badge low">Stock bajo</span></div>`
- ).join():'<div class="empty">No hay productos con stock bajo.</div>';
+ const low = products.filter(p => p.qty <= 3);
+ $('lowStock').innerHTML = low.length ? low.map(p =>
+  `<div class="product"><div class="pinfo"><b>${escapeHTML(p.name)}</b><small>Quedan ${p.qty} u.</small></div><span class="badge low">Stock bajo</span></div>`
+ ).join('') : '<div class="empty">No hay productos con stock bajo.</div>';
+
  renderProducts();
 }
 
 function renderProducts(){
- const query=$('search').value.toLowerCase();
- const cat=$('filterCategory').value;
- const items=db.products.filter(p=>
-  (p.name+' '+p.code+' '+p.color).toLowerCase().includes(query)&&
-  (!cat||p.category===cat));
- 
- $('productList').innerHTML=items.length?items.map(p=>`
+ const query = $('search').value.toLowerCase();
+ const cat = $('filterCategory').value;
+ const items = products.filter(p =>
+  (p.name+' '+(p.code||'')+' '+(p.color||'')).toLowerCase().includes(query) &&
+  (!cat || p.category === cat));
+
+ $('productList').innerHTML = items.length ? items.map(p => `
   <div class="product">
-   <div class="thumb" style="${p.image?`background-image:url('${p.image}')`:`background:${/^#[0-9a-f]{6}$/i.test(p.colorCode)?p.colorCode:'#568cff'}`}"></div>
+   <div class="thumb" style="${p.image ? `background-image:url('${p.image}')` : `background:${p.colorCode || '#568cff'}`}"></div>
    <div class="pinfo"><b>${escapeHTML(p.name)}</b>
-    <small>${escapeHTML(p.category)} · ${escapeHTML(p.color||'Sin color')}
-    ${p.code?' · '+escapeHTML(p.code):''}<br>
+    <small>${escapeHTML(p.category)} · ${escapeHTML(p.color||'Sin detalle')} ${p.code?' · '+escapeHTML(p.code):''}<br>
     Costo: ${money(p.cost)} · Venta: ${money(p.price)}<br>
     Stock: <b>${p.qty}</b> · Ganancia unitaria: <span class="green">${money(p.price-p.cost)}</span></small>
    </div>
    <div class="quick-qty">
-    <button onclick="quickQty(${p.id}, -1)">-</button>
+    <button onclick="quickQty('${p.id}', -1)">-</button>
     <span style="font-size:14px;font-weight:bold;min-width:20px;text-align:center">${p.qty}</span>
-    <button onclick="quickQty(${p.id}, 1)">+</button>
+    <button onclick="quickQty('${p.id}', 1)">+</button>
    </div>
    <div class="actions">
-    <button onclick="sell(${p.id})" ${p.qty<=0?'disabled':''}>Vendido</button>
-    <button class="secondary" onclick="editProduct(${p.id})">Editar</button>
-    <button class="danger" onclick="deleteProduct(${p.id})">×</button>
+    <button onclick="sell('${p.id}')" ${p.qty<=0?'disabled':''}>Vendido</button>
+    <button class="secondary" onclick="editProduct('${p.id}')">Editar</button>
+    <button class="danger" onclick="deleteProduct('${p.id}')">×</button>
    </div>
-  </div>`).join(''):'<div class="empty">No se encontraron productos.</div>';
+  </div>`).join('') : '<div class="empty">No tenés productos cargados todavía.</div>';
 }
-$('search').oninput=renderProducts;
-$('filterCategory').onchange=renderProducts;
+$('search').oninput = renderProducts;
+$('filterCategory').onchange = renderProducts;
 
 function handleImage(e){
- const file=e.target.files[0];
- if(!file)return;
- const reader=new FileReader();
- reader.onload=event=>{
-  const img=new Image();
-  img.onload=()=>{
-   const canvas=document.createElement('canvas');
-   const ctx=canvas.getContext('2d');
-   const MAX_WIDTH=150;
-   const MAX_HEIGHT=150;
-   let width=img.width;
-   let height=img.height;
-   if(width>height){if(width>MAX_WIDTH){height*=MAX_WIDTH/width;width=MAX_WIDTH;}}
-   else{if(height>MAX_HEIGHT){width*=MAX_HEIGHT/height;height=MAX_HEIGHT;}}
-   canvas.width=width;canvas.height=height;
-   ctx.drawImage(img,0,0,width,height);
-   const dataurl=canvas.toDataURL('image/jpeg',0.7);
-   $('pImage').value=dataurl;
-   $('imagePreview').innerHTML=`<img src="${dataurl}" style="width:100%;height:100%;object-fit:cover;border-radius:8px">`;
+ const file = e.target.files[0];
+ if(!file) return;
+ const reader = new FileReader();
+ reader.onload = event => {
+  const img = new Image();
+  img.onload = () => {
+   const canvas = document.createElement('canvas');
+   const ctx = canvas.getContext('2d');
+   const MAX = 150;
+   let w = img.width, h = img.height;
+   if (w > h) { if (w > MAX) { h *= MAX/w; w = MAX; } }
+   else { if (h > MAX) { w *= MAX/h; h = MAX; } }
+   canvas.width = w; canvas.height = h;
+   ctx.drawImage(img,0,0,w,h);
+   const dataurl = canvas.toDataURL('image/jpeg', 0.7);
+   $('pImage').value = dataurl;
+   $('imagePreview').innerHTML = `<img src="${dataurl}" style="width:100%;height:100%;object-fit:cover;border-radius:8px">`;
   };
-  img.src=event.target.result;
+  img.src = event.target.result;
  };
  reader.readAsDataURL(file);
 }
 
 function toggleForm(show){
- if(show===undefined)show=$('productFormPanel').classList.contains('hidden');
- $('productFormPanel').classList.toggle('hidden',!show);
- if(!show){
-  editingId=null;$('productForm').reset();$('pImage').value='';$('imagePreview').innerHTML='';$('formTitle').textContent='Nuevo producto';
- }else $('pName').focus();
+ if (show === undefined) show = $('productFormPanel').classList.contains('hidden');
+ $('productFormPanel').classList.toggle('hidden', !show);
+ if (!show) {
+  editingId = null; $('productForm').reset(); $('pImage').value = ''; $('imagePreview').innerHTML = ''; $('formTitle').textContent = 'Nuevo producto';
+ } else $('pName').focus();
 }
 
-$('productForm').onsubmit=e=>{
+$('productForm').onsubmit = async e => {
  e.preventDefault();
- const qty=Number($('pQty').value),cost=Number($('pCost').value),price=Number($('pPrice').value);
- if(!Number.isInteger(qty)||qty<0||cost<0||price<=0)return alert('Revisá la cantidad y los precios.');
- const p={
-  id:editingId||Date.now(),
-  name:$('pName').value.trim(),
-  category:$('pCategory').value,
-  color:$('pColor').value.trim(),
-  colorCode:$('pColorCode').value,
-  image:$('pImage').value,
-  cost,price,qty,
-  code:$('pCode').value.trim()
+ const qty = Number($('pQty').value), cost = Number($('pCost').value), price = Number($('pPrice').value);
+ if (!Number.isInteger(qty) || qty < 0 || cost < 0 || price <= 0) return alert('Revisá los datos ingresados.');
+ 
+ const pData = {
+  name: $('pName').value.trim(),
+  category: $('pCategory').value,
+  color: $('pColor').value.trim(),
+  colorCode: $('pColorCode').value,
+  image: $('pImage').value,
+  cost, price, qty,
+  code: $('pCode').value.trim()
  };
- if(editingId){
-  const index=db.products.findIndex(x=>x.id===editingId);
-  if(index>=0)db.products[index]=p;
- }else db.products.push(p);
- toggleForm(false);persist();
+
+ const colRef = db.collection('businesses').doc('shared_store').collection('products');
+ if (editingId) {
+  await colRef.doc(editingId).update(pData);
+ } else {
+  await colRef.add(pData);
+ }
+ toggleForm(false);
 };
 
 function editProduct(id){
- const p=db.products.find(x=>x.id===id);if(!p)return;
- editingId=id;toggleForm(true);$('formTitle').textContent='Editar producto';
- $('pName').value=p.name;$('pCategory').value=p.category;$('pColor').value=p.color;
- $('pColorCode').value=p.colorCode;$('pCost').value=p.cost;
- $('pPrice').value=p.price;$('pQty').value=p.qty;$('pCode').value=p.code;
- $('pImage').value=p.image||'';
- $('imagePreview').innerHTML=p.image?`<img src="${p.image}" style="width:100%;height:100%;object-fit:cover;border-radius:8px">`:'';
+ const p = products.find(x => x.id === id); if(!p) return;
+ editingId = id; toggleForm(true); $('formTitle').textContent = 'Editar producto';
+ $('pName').value = p.name; $('pCategory').value = p.category; $('pColor').value = p.color;
+ $('pColorCode').value = p.colorCode || '#568cff'; $('pCost').value = p.cost;
+ $('pPrice').value = p.price; $('pQty').value = p.qty; $('pCode').value = p.code || '';
+ $('pImage').value = p.image || '';
+ $('imagePreview').innerHTML = p.image ? `<img src="${p.image}" style="width:100%;height:100%;object-fit:cover;border-radius:8px">` : '';
  $('productFormPanel').scrollIntoView({behavior:'smooth'});
 }
 
-function quickQty(id,delta){
- const p=db.products.find(x=>x.id===id);if(!p)return;
- if(p.qty+delta<0)return;
- p.qty+=delta;
- persist();
+async function quickQty(id, delta){
+ const p = products.find(x => x.id === id); if(!p) return;
+ if (p.qty + delta < 0) return;
+ await db.collection('businesses').doc('shared_store').collection('products').doc(id).update({
+  qty: p.qty + delta
+ });
 }
 
-function deleteProduct(id){
- if(confirm('¿Eliminar este producto?')){
-  db.products=db.products.filter(p=>p.id!==id);persist();
+async function deleteProduct(id){
+ if (confirm('¿Eliminar este producto?')) {
+  await db.collection('businesses').doc('shared_store').collection('products').doc(id).delete();
  }
 }
 
-function sell(id){
- const p=db.products.find(x=>x.id===id);if(!p||p.qty<1)return;
- 
- const qtyInput=prompt(`Producto: ${p.name}\nStock disponible: ${p.qty}\nPrecio unitario sugerido: ${money(p.price)}\n\n¿Cuántas unidades se vendieron?`, "1");
- if(qtyInput===null)return;
- const qtySold=Number(qtyInput);
- if(!Number.isInteger(qtySold)||qtySold<=0)return alert('Ingresá una cantidad válida.');
- if(qtySold>p.qty)return alert('No hay suficiente stock para esa cantidad.');
+async function sell(id){
+ const p = products.find(x => x.id === id); if(!p || p.qty < 1) return;
+ const qtyInput = prompt(`Producto: ${p.name}\nStock disponible: ${p.qty}\n\n¿Cuántas unidades se vendieron?`, "1");
+ if (!qtyInput) return;
+ const qtySold = Number(qtyInput);
+ if (!Number.isInteger(qtySold) || qtySold <= 0 || qtySold > p.qty) return alert('Cantidad no válida.');
 
- const totalSuggested=p.price*qtySold;
- const answer=prompt(`Vendiendo ${qtySold} unidad(es) de ${p.name}.\nPrecio total sugerido: ${money(totalSuggested)}\n\n¿Cuál fue el monto total cobrado?`,totalSuggested);
- if(answer===null)return;
- const total=Number(answer);
- if(!Number.isFinite(total)||total<0)return alert('Ingresá un precio válido.');
+ const totalSuggested = p.price * qtySold;
+ const answer = prompt(`Vendiendo ${qtySold} u. de ${p.name}.\nPrecio sugerido: ${money(totalSuggested)}\n\n¿Monto total cobrado?`, totalSuggested);
+ if (!answer) return;
+ const total = Number(answer);
 
- const paymentMethod=prompt(`Seleccioná el método de pago:\n1. Efectivo\n2. Transferencia\n3. Mercado Pago / Tarjeta\n4. Fiado`, "1");
- const methods={'1':'Efectivo','2':'Transferencia','3':'Mercado Pago / Tarjeta','4':'Fiado'};
- const method=methods[paymentMethod]||'Efectivo';
+ const paymentMethod = prompt(`Método de pago:\n1. Efectivo\n2. Transferencia\n3. Mercado Pago / Tarjeta\n4. Fiado`, "1");
+ const methods = {'1':'Efectivo','2':'Transferencia','3':'Mercado Pago / Tarjeta','4':'Fiado'};
+ const method = methods[paymentMethod] || 'Efectivo';
 
- const totalCost=p.cost*qtySold;
- const profit=total-totalCost;
+ const totalCost = p.cost * qtySold;
+ const profit = total - totalCost;
 
- if(!confirm(`Confirmar venta por ${money(total)} (${qtySold} u. - ${method})?\nGanancia estimada: ${money(profit)}`))return;
-
- p.qty-=qtySold;
- db.sales.push({
-  id:Date.now(),
-  name:p.name,
+ const storeRef = db.collection('businesses').doc('shared_store');
+ await storeRef.collection('products').doc(id).update({ qty: p.qty - qtySold });
+ await storeRef.collection('sales').add({
+  name: p.name,
   qtySold,
-  cost:totalCost,
+  cost: totalCost,
   total,
   profit,
   method,
-  timestamp:new Date().toISOString(),
-  date:new Date().toLocaleString('es-AR')
+  timestamp: new Date().toISOString(),
+  date: new Date().toLocaleString('es-AR')
  });
- persist();
 }
 
 function saleRow(s){
  return `<div class="product"><div class="pinfo"><b>${escapeHTML(s.name)} ${s.qtySold>1?`(x${s.qtySold})`:''}</b>
- <small>${escapeHTML(s.date)} · Pago: <b>${escapeHTML(s.method||'Efectivo')}</b> · Costo: ${money(s.cost)}</small>
+ <small>${escapeHTML(s.date)} · Pago: <b>${escapeHTML(s.method||'Efectivo')}</b></small>
  <small class="green">Ganancia: ${money(s.profit)}</small></div>
  <b>${money(s.total)}</b></div>`;
 }
+
 function renderSales(){
- $('allSales').innerHTML=db.sales.length?
-  db.sales.slice().reverse().map(saleRow).join(''):
+ $('allSales').innerHTML = sales.length ?
+  sales.slice().reverse().map(saleRow).join('') :
   '<div class="empty">Todavía no hay ventas registradas.</div>';
 }
-$('settingsForm').onsubmit=e=>{
+
+$('settingsForm').onsubmit = async e => {
  e.preventDefault();
- const cats=$('editCategories').value.split(',').map(s=>s.trim()).filter(Boolean);
- if(!cats.length)return alert('Agregá al menos una categoría.');
- db.business={name:$('editBiz').value.trim(),owners:$('editOwners').value.trim(),type:$('editType').value,categories:cats};
- persist();alert('Negocio actualizado.');
+ const cats = $('editCategories').value.split(',').map(s=>s.trim()).filter(Boolean);
+ await db.collection('businesses').doc('shared_store').update({
+  name: $('editBiz').value.trim(),
+  owners: $('editOwners').value.trim(),
+  type: $('editType').value,
+  categories: cats
+ });
+ alert('Datos guardados.');
 };
 
-function exportData(){
- const dataStr="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(db));
- const dlAnchor=document.createElement('a');
- dlAnchor.setAttribute("href", dataStr);
- dlAnchor.setAttribute("download", `stockea_backup_${new Date().toISOString().slice(0,10)}.json`);
- document.body.appendChild(dlAnchor);
- dlAnchor.click();
- dlAnchor.remove();
-}
-
-function importData(event){
- const file=event.target.files[0];
- if(!file)return;
- const reader=new FileReader();
- reader.onload=e=>{
-  try{
-   const imported=JSON.parse(e.target.result);
-   if(!imported.business||!Array.isArray(imported.products))throw new Error();
-   db=imported;
-   persist();
-   alert('¡Datos importados correctamente!');
-   location.reload();
-  }catch(err){
-   alert('El archivo no es válido o está corrupto.');
-  }
- };
- reader.readAsText(file);
-}
-
-function resetDemo(){
- if(confirm('Esto borra el negocio, los productos y las ventas guardadas. ¿Continuar?')){
-  localStorage.removeItem('stockea-v3');location.reload();
- }
-}
-
-const originalRender=render;
-render=function(){
+const originalRender = render;
+render = function(){
  originalRender();
- if(db.business){
-  $('editBiz').value=db.business.name;
-  $('editOwners').value=db.business.owners;
-  $('editType').value=db.business.type;
-  $('editCategories').value=db.business.categories.join(', ');
+ if (currentBusiness) {
+  $('editBiz').value = currentBusiness.name;
+  $('editOwners').value = currentBusiness.owners;
+  $('editType').value = currentBusiness.type;
+  $('editCategories').value = currentBusiness.categories.join(', ');
  }
 };
-init();
 </script>
 </body>
 </html>
