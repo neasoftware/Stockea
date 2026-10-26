@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Stockeá — Gestión de negocio en la nube</title>
 
-<!-- Firebase SDKs (Compatiblity Layer para CDN) -->
+<!-- Firebase SDKs (Compatibility Layer) -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -99,7 +99,7 @@ display:flex;align-items:center;justify-content:center}
 
 <header>
  <div class="logo">Stockeá<span>.</span></div>
- <small id="businessHeader">Cargando...</small>
+ <small id="businessHeader">No conectado</small>
 </header>
 
 <!-- PANTALLA DE LOGIN / REGISTRO -->
@@ -123,7 +123,7 @@ display:flex;align-items:center;justify-content:center}
 <div id="setup" class="panel hidden">
  <div class="logo">Stockeá<span>.</span></div>
  <h1>Configuremos tu negocio</h1>
- <p class="sub">Completá estos datos para sincronizar con la nube.</p>
+ <p class="sub">Completá estos datos para sincronizar con tu cuenta de correo.</p>
  <form id="setupForm">
   <div class="field"><label>Nombre del negocio *</label>
    <input id="bizName" required placeholder="Ej. Mi Emprendimiento"></div>
@@ -138,7 +138,7 @@ display:flex;align-items:center;justify-content:center}
   </div>
   <div class="field"><label>Categorías de productos *</label>
    <input id="categories" required value="General, Otros" placeholder="Separá las categorías con comas"></div>
-  <button type="submit">Crear mi negocio →</button>
+  <button type="submit">Guardar y Vincular Negocio →</button>
  </form>
 </div>
 
@@ -260,7 +260,7 @@ display:flex;align-items:center;justify-content:center}
    </div>
   </section>
 
-  <p class="notice">Stockeá — Sistema de gestión en tiempo real con Firebase.</p>
+  <p class="notice">Stockeá — Vinculado a tu cuenta de Firebase.</p>
  </main>
 </div>
 
@@ -290,6 +290,9 @@ let products = [];
 let sales = [];
 let editingId = null;
 let authMode = 'login';
+let unsubscribeBiz = null;
+let unsubscribeProd = null;
+let unsubscribeSales = null;
 
 // --- CONTROL DE AUTENTICACIÓN ---
 function toggleAuthTab(mode){
@@ -318,13 +321,18 @@ $('authForm').onsubmit = async e => {
  }
 };
 
-function logout(){ auth.signOut(); }
+function logout(){ 
+ if (unsubscribeBiz) unsubscribeBiz();
+ if (unsubscribeProd) unsubscribeProd();
+ if (unsubscribeSales) unsubscribeSales();
+ auth.signOut(); 
+}
 
 auth.onAuthStateChanged(user => {
  currentUser = user;
  if (user) {
   $('authScreen').classList.add('hidden');
-  loadCloudData();
+  loadUserCloudData(user.uid);
  } else {
   $('authScreen').classList.remove('hidden');
   $('setup').classList.add('hidden');
@@ -333,12 +341,13 @@ auth.onAuthStateChanged(user => {
  }
 });
 
-// --- BASE DE DATOS EN TIEMPO REAL (FIRESTORE) ---
-function loadCloudData(){
- const bizRef = db.collection('businesses').doc('shared_store');
+// --- BASE DE DATOS POR USUARIO (FIRESTORE) ---
+function loadUserCloudData(uid){
+ // Referencia directa al negocio del usuario actual mediante su UID
+ const bizRef = db.collection('businesses').doc(uid);
  
  // Escuchar datos del negocio
- bizRef.onSnapshot(doc => {
+ unsubscribeBiz = bizRef.onSnapshot(doc => {
   if (doc.exists) {
    currentBusiness = doc.data();
    $('setup').classList.add('hidden');
@@ -347,17 +356,18 @@ function loadCloudData(){
   } else {
    $('setup').classList.remove('hidden');
    $('app').classList.add('hidden');
+   $('businessHeader').textContent = 'Crear negocio';
   }
  });
 
  // Escuchar productos
- bizRef.collection('products').onSnapshot(snapshot => {
+ unsubscribeProd = bizRef.collection('products').onSnapshot(snapshot => {
   products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   render();
  });
 
  // Escuchar ventas
- bizRef.collection('sales').onSnapshot(snapshot => {
+ unsubscribeSales = bizRef.collection('sales').onSnapshot(snapshot => {
   sales = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   render();
  });
@@ -365,6 +375,7 @@ function loadCloudData(){
 
 $('setupForm').onsubmit = async e => {
  e.preventDefault();
+ if (!currentUser) return alert('Debes iniciar sesión.');
  const cats = $('categories').value.split(',').map(s=>s.trim()).filter(Boolean);
  if (!cats.length) return alert('Agregá al menos una categoría.');
  
@@ -372,10 +383,11 @@ $('setupForm').onsubmit = async e => {
   name: $('bizName').value.trim(),
   owners: $('owners').value.trim(),
   type: $('businessType').value,
-  categories: cats
+  categories: cats,
+  ownerEmail: currentUser.email
  };
 
- await db.collection('businesses').doc('shared_store').set(bizData);
+ await db.collection('businesses').doc(currentUser.uid).set(bizData);
 };
 
 // --- NAVEGACIÓN Y RENDER ---
@@ -515,6 +527,7 @@ function toggleForm(show){
 
 $('productForm').onsubmit = async e => {
  e.preventDefault();
+ if (!currentUser) return;
  const qty = Number($('pQty').value), cost = Number($('pCost').value), price = Number($('pPrice').value);
  if (!Number.isInteger(qty) || qty < 0 || cost < 0 || price <= 0) return alert('Revisá los datos ingresados.');
  
@@ -528,7 +541,7 @@ $('productForm').onsubmit = async e => {
   code: $('pCode').value.trim()
  };
 
- const colRef = db.collection('businesses').doc('shared_store').collection('products');
+ const colRef = db.collection('businesses').doc(currentUser.uid).collection('products');
  if (editingId) {
   await colRef.doc(editingId).update(pData);
  } else {
@@ -549,21 +562,21 @@ function editProduct(id){
 }
 
 async function quickQty(id, delta){
- const p = products.find(x => x.id === id); if(!p) return;
+ const p = products.find(x => x.id === id); if(!p || !currentUser) return;
  if (p.qty + delta < 0) return;
- await db.collection('businesses').doc('shared_store').collection('products').doc(id).update({
+ await db.collection('businesses').doc(currentUser.uid).collection('products').doc(id).update({
   qty: p.qty + delta
  });
 }
 
 async function deleteProduct(id){
- if (confirm('¿Eliminar este producto?')) {
-  await db.collection('businesses').doc('shared_store').collection('products').doc(id).delete();
+ if (confirm('¿Eliminar este producto?') && currentUser) {
+  await db.collection('businesses').doc(currentUser.uid).collection('products').doc(id).delete();
  }
 }
 
 async function sell(id){
- const p = products.find(x => x.id === id); if(!p || p.qty < 1) return;
+ const p = products.find(x => x.id === id); if(!p || p.qty < 1 || !currentUser) return;
  const qtyInput = prompt(`Producto: ${p.name}\nStock disponible: ${p.qty}\n\n¿Cuántas unidades se vendieron?`, "1");
  if (!qtyInput) return;
  const qtySold = Number(qtyInput);
@@ -581,7 +594,7 @@ async function sell(id){
  const totalCost = p.cost * qtySold;
  const profit = total - totalCost;
 
- const storeRef = db.collection('businesses').doc('shared_store');
+ const storeRef = db.collection('businesses').doc(currentUser.uid);
  await storeRef.collection('products').doc(id).update({ qty: p.qty - qtySold });
  await storeRef.collection('sales').add({
   name: p.name,
@@ -610,8 +623,9 @@ function renderSales(){
 
 $('settingsForm').onsubmit = async e => {
  e.preventDefault();
+ if (!currentUser) return;
  const cats = $('editCategories').value.split(',').map(s=>s.trim()).filter(Boolean);
- await db.collection('businesses').doc('shared_store').update({
+ await db.collection('businesses').doc(currentUser.uid).update({
   name: $('editBiz').value.trim(),
   owners: $('editOwners').value.trim(),
   type: $('editType').value,
