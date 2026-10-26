@@ -265,7 +265,6 @@ display:flex;align-items:center;justify-content:center}
 </div>
 
 <script>
-// --- CONFIGURACIÓN DE FIREBASE ---
 const firebaseConfig = {
   apiKey: "AIzaSyDVV2rWhu09PJBEIrwW3F97FZSS7c9_d1Y",
   authDomain: "stockea-e4cd3.firebaseapp.com",
@@ -294,7 +293,13 @@ let unsubscribeBiz = null;
 let unsubscribeProd = null;
 let unsubscribeSales = null;
 
-// --- CONTROL DE AUTENTICACIÓN ---
+// Usaremos un ID de negocio fijo basado en el email principal o un identificador único global común para los dueños
+// Para que Bruno y Santi compartan el mismo negocio exacto, usaremos una clave limpia basada en el correo principal o un ID maestro unificado.
+function getStoreId(user) {
+  // Si querés que ambos compartan el mismo negocio exacto, podés usar un ID fijo para su proyecto:
+  return "negocio_principal_stockea"; 
+}
+
 function toggleAuthTab(mode){
  authMode = mode;
  $('tabLogin').classList.toggle('active', mode === 'login');
@@ -325,14 +330,16 @@ function logout(){
  if (unsubscribeBiz) unsubscribeBiz();
  if (unsubscribeProd) unsubscribeProd();
  if (unsubscribeSales) unsubscribeSales();
- auth.signOut(); 
+ auth.signOut().then(() => {
+  location.reload();
+ });
 }
 
 auth.onAuthStateChanged(user => {
  currentUser = user;
  if (user) {
   $('authScreen').classList.add('hidden');
-  loadUserCloudData(user.uid);
+  loadUserCloudData(user);
  } else {
   $('authScreen').classList.remove('hidden');
   $('setup').classList.add('hidden');
@@ -341,12 +348,14 @@ auth.onAuthStateChanged(user => {
  }
 });
 
-// --- BASE DE DATOS POR USUARIO (FIRESTORE) ---
-function loadUserCloudData(uid){
- // Referencia directa al negocio del usuario actual mediante su UID
- const bizRef = db.collection('businesses').doc(uid);
+function loadUserCloudData(user){
+ const storeId = getStoreId(user);
+ const bizRef = db.collection('businesses').doc(storeId);
  
- // Escuchar datos del negocio
+ if(unsubscribeBiz) unsubscribeBiz();
+ if(unsubscribeProd) unsubscribeProd();
+ if(unsubscribeSales) unsubscribeSales();
+
  unsubscribeBiz = bizRef.onSnapshot(doc => {
   if (doc.exists) {
    currentBusiness = doc.data();
@@ -354,19 +363,18 @@ function loadUserCloudData(uid){
    $('app').classList.remove('hidden');
    render();
   } else {
+   currentBusiness = null;
    $('setup').classList.remove('hidden');
    $('app').classList.add('hidden');
    $('businessHeader').textContent = 'Crear negocio';
   }
  });
 
- // Escuchar productos
  unsubscribeProd = bizRef.collection('products').onSnapshot(snapshot => {
   products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   render();
  });
 
- // Escuchar ventas
  unsubscribeSales = bizRef.collection('sales').onSnapshot(snapshot => {
   sales = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   render();
@@ -387,10 +395,10 @@ $('setupForm').onsubmit = async e => {
   ownerEmail: currentUser.email
  };
 
- await db.collection('businesses').doc(currentUser.uid).set(bizData);
+ const storeId = getStoreId(currentUser);
+ await db.collection('businesses').doc(storeId).set(bizData);
 };
 
-// --- NAVEGACIÓN Y RENDER ---
 function page(id){
  document.querySelectorAll('main section').forEach(s=>s.classList.add('hidden'));
  $(id).classList.remove('hidden');
@@ -541,7 +549,8 @@ $('productForm').onsubmit = async e => {
   code: $('pCode').value.trim()
  };
 
- const colRef = db.collection('businesses').doc(currentUser.uid).collection('products');
+ const storeId = getStoreId(currentUser);
+ const colRef = db.collection('businesses').doc(storeId).collection('products');
  if (editingId) {
   await colRef.doc(editingId).update(pData);
  } else {
@@ -564,14 +573,16 @@ function editProduct(id){
 async function quickQty(id, delta){
  const p = products.find(x => x.id === id); if(!p || !currentUser) return;
  if (p.qty + delta < 0) return;
- await db.collection('businesses').doc(currentUser.uid).collection('products').doc(id).update({
+ const storeId = getStoreId(currentUser);
+ await db.collection('businesses').doc(storeId).collection('products').doc(id).update({
   qty: p.qty + delta
  });
 }
 
 async function deleteProduct(id){
  if (confirm('¿Eliminar este producto?') && currentUser) {
-  await db.collection('businesses').doc(currentUser.uid).collection('products').doc(id).delete();
+  const storeId = getStoreId(currentUser);
+  await db.collection('businesses').doc(storeId).collection('products').doc(id).delete();
  }
 }
 
@@ -594,7 +605,8 @@ async function sell(id){
  const totalCost = p.cost * qtySold;
  const profit = total - totalCost;
 
- const storeRef = db.collection('businesses').doc(currentUser.uid);
+ const storeId = getStoreId(currentUser);
+ const storeRef = db.collection('businesses').doc(storeId);
  await storeRef.collection('products').doc(id).update({ qty: p.qty - qtySold });
  await storeRef.collection('sales').add({
   name: p.name,
@@ -625,7 +637,8 @@ $('settingsForm').onsubmit = async e => {
  e.preventDefault();
  if (!currentUser) return;
  const cats = $('editCategories').value.split(',').map(s=>s.trim()).filter(Boolean);
- await db.collection('businesses').doc(currentUser.uid).update({
+ const storeId = getStoreId(currentUser);
+ await db.collection('businesses').doc(storeId).update({
   name: $('editBiz').value.trim(),
   owners: $('editOwners').value.trim(),
   type: $('editType').value,
