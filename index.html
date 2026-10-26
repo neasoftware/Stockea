@@ -112,19 +112,35 @@ h2{font-size:20px}
     <button id="tabJoinBiz" type="button">Unirse con código</button>
   </div>
   <form id="createBizForm">
-    <div class="field"><label>Nombre del negocio *</label><input id="bizName" required placeholder="Mi emprendimiento"></div>
-    <div class="field"><label>Dueños *</label><input id="owners" required placeholder="Bruno y Santi"></div>
-    <div class="field"><label>Rubro</label>
+    <div class="field">
+      <label>Nombre del negocio *</label>
+      <input id="bizName" required placeholder="Mi emprendimiento">
+    </div>
+    <div class="field">
+      <label>Dueños *</label>
+      <input id="owners" required placeholder="Nombre de los dueños">
+    </div>
+    <div class="field">
+      <label>Rubro</label>
       <select id="businessType">
-        <option>Tecnología y accesorios</option><option>Ropa y moda</option>
-        <option>Alimentos y bebidas</option><option>Perfumería</option><option>Otro</option>
+        <option>Tecnología y accesorios</option>
+        <option>Ropa y moda</option>
+        <option>Alimentos y bebidas</option>
+        <option>Perfumería</option>
+        <option>Otro</option>
       </select>
     </div>
-    <div class="field"><label>Categorías separadas por comas</label><input id="categories" required value="General, Otros"></div>
+    <div class="field">
+      <label>Categorías separadas por comas</label>
+      <input id="categories" required placeholder="Ej.: General, Accesorios">
+    </div>
     <button type="submit" style="width:100%">Crear negocio y entrar →</button>
   </form>
   <form id="joinBizForm" class="hidden">
-    <div class="field"><label>Código de acceso *</label><input id="joinCode" required placeholder="Código de tu socio"></div>
+    <div class="field">
+      <label>Código de acceso *</label>
+      <input id="joinCode" required placeholder="Código de tu socio">
+    </div>
     <button type="submit" style="width:100%">Unirse al negocio →</button>
   </form>
   <p id="setupError" class="hidden" style="color:var(--red)"></p>
@@ -141,10 +157,15 @@ h2{font-size:20px}
   <main>
     <section id="dashboard">
       <div class="sectionhead">
-        <div><h1 id="welcome">Resumen</h1><p id="storeSubInfo" class="sub">Panel general</p></div>
+        <div>
+          <h1 id="welcome">Resumen</h1>
+          <p id="storeSubInfo" class="sub">Panel general</p>
+        </div>
         <select id="periodFilter" style="max-width:190px">
-          <option value="today">Hoy</option><option value="week">Esta semana</option>
-          <option value="month" selected>Este mes</option><option value="all">Histórico total</option>
+          <option value="today">Hoy</option>
+          <option value="week">Esta semana</option>
+          <option value="month" selected>Este mes</option>
+          <option value="all">Histórico total</option>
         </select>
       </div>
       <div class="stats">
@@ -175,7 +196,12 @@ h2{font-size:20px}
             <div class="field"><label>Precio de venta ($)</label><input id="pPrice" type="number" min=".01" step=".01" required></div>
             <div class="field"><label>Cantidad disponible</label><input id="pQty" type="number" min="0" step="1" required></div>
             <div class="field"><label>Código opcional</label><input id="pCode"></div>
-            <div class="field full"><label>Foto opcional</label><input id="pImageFile" type="file" accept="image/*"><input id="pImage" type="hidden"><div id="imagePreview"></div></div>
+            <div class="field full">
+              <label>Foto opcional</label>
+              <input id="pImageFile" type="file" accept="image/*">
+              <input id="pImage" type="hidden">
+              <div id="imagePreview"></div>
+            </div>
           </div>
           <button type="submit">Guardar producto</button>
           <button type="button" class="secondary" id="cancelProductBtn">Cancelar</button>
@@ -189,20 +215,30 @@ h2{font-size:20px}
     </section>
 
     <section id="sales" class="hidden">
-      <h1>Ventas</h1><p class="sub">Historial compartido del negocio.</p>
+      <h1>Ventas</h1>
+      <p class="sub">Historial compartido del negocio.</p>
       <div class="panel"><h2>Registro de ventas</h2><div id="allSales"></div></div>
     </section>
 
     <section id="settings" class="hidden">
-      <h1>Mi negocio</h1><p class="sub">Datos y código para invitar socios.</p>
+      <h1>Mi negocio</h1>
+      <p class="sub">Datos y código para invitar socios.</p>
       <div class="panel">
-        <p><b>Código para compartir:</b></p><div id="displayStoreCode" class="codebox">—</div>
+        <p><b>Código para compartir:</b></p>
+        <div id="displayStoreCode" class="codebox">—</div>
         <button id="copyStoreCode" class="secondary">Copiar código</button>
         <form id="settingsForm" style="margin-top:20px">
           <div class="field"><label>Nombre del negocio</label><input id="editBiz" required></div>
           <div class="field"><label>Dueños</label><input id="editOwners" required></div>
-          <div class="field"><label>Rubro</label>
-            <select id="editType"><option>Tecnología y accesorios</option><option>Ropa y moda</option><option>Alimentos y bebidas</option><option>Perfumería</option><option>Otro</option></select>
+          <div class="field">
+            <label>Rubro</label>
+            <select id="editType">
+              <option>Tecnología y accesorios</option>
+              <option>Ropa y moda</option>
+              <option>Alimentos y bebidas</option>
+              <option>Perfumería</option>
+              <option>Otro</option>
+            </select>
           </div>
           <div class="field"><label>Categorías separadas por comas</label><input id="editCategories" required></div>
           <button type="submit">Guardar cambios</button>
@@ -225,378 +261,990 @@ const firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
+
 const auth = firebase.auth();
 const db = firebase.firestore();
 const $ = id => document.getElementById(id);
 
-let currentUser = null, currentBusiness = null, currentBusinessId = null;
-let products = [], sales = [], businessList = [], editingProductId = null;
-let productUnsubscribe = null, salesUnsubscribe = null, businessUnsubscribe = null;
+let currentUser = null;
+let currentBusiness = null;
+let currentBusinessId = null;
+let products = [];
+let sales = [];
+let businessList = [];
+let editingProductId = null;
+let productUnsubscribe = null;
+let salesUnsubscribe = null;
+let businessUnsubscribe = null;
 let authMode = "login";
 
 const money = value => new Intl.NumberFormat("es-AR", {
-  style:"currency", currency:"ARS", maximumFractionDigits:2
-}).format(Number(value)||0);
+  style: "currency",
+  currency: "ARS",
+  maximumFractionDigits: 2
+}).format(Number(value) || 0);
 
-function show(id){$(id)?.classList.remove("hidden")}
-function hide(id){$(id)?.classList.add("hidden")}
-function error(id,message){$(id).textContent=message||"";$(id).classList.toggle("hidden",!message)}
-function clean(value){return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
-function categoriesFrom(value){return String(value||"").split(",").map(x=>x.trim()).filter(Boolean)}
-function makeCode(){return "STK-"+Math.random().toString(36).slice(2,10).toUpperCase()}
-function logout(){return auth.signOut()}
-$("headerLogout").onclick=logout;
-$("setupLogout").onclick=logout;
-
-$("tabLogin").onclick=()=>setAuthMode("login");
-$("tabRegister").onclick=()=>setAuthMode("register");
-function setAuthMode(mode){
-  authMode=mode;
-  $("tabLogin").classList.toggle("active",mode==="login");
-  $("tabRegister").classList.toggle("active",mode==="register");
-  $("authSubmitBtn").textContent=mode==="login"?"Iniciar sesión":"Crear cuenta";
-  error("authError","");
+function show(id) {
+  $(id)?.classList.remove("hidden");
 }
 
-$("authForm").addEventListener("submit",async e=>{
+function hide(id) {
+  $(id)?.classList.add("hidden");
+}
+
+function error(id, message) {
+  $(id).textContent = message || "";
+  $(id).classList.toggle("hidden", !message);
+}
+
+function clean(value) {
+  return String(value ?? "").replace(/[&<>"']/g, c => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;"
+  }[c]));
+}
+
+function categoriesFrom(value) {
+  return [...new Set(
+    String(value || "")
+      .split(",")
+      .map(x => x.trim())
+      .filter(Boolean)
+  )];
+}
+
+function makeCode() {
+  return "STK-" + Math.random().toString(36).slice(2, 10).toUpperCase();
+}
+
+function setText(id, value) {
+  if ($(id)) $(id).textContent = value ?? "";
+}
+
+function logout() {
+  return auth.signOut();
+}
+
+$("headerLogout").onclick = logout;
+$("setupLogout").onclick = logout;
+
+$("tabLogin").onclick = () => setAuthMode("login");
+$("tabRegister").onclick = () => setAuthMode("register");
+
+function setAuthMode(mode) {
+  authMode = mode;
+  $("tabLogin").classList.toggle("active", mode === "login");
+  $("tabRegister").classList.toggle("active", mode === "register");
+  $("authSubmitBtn").textContent =
+    mode === "login" ? "Iniciar sesión" : "Crear cuenta";
+  error("authError", "");
+}
+
+$("authForm").addEventListener("submit", async e => {
   e.preventDefault();
-  const email=$("authEmail").value.trim(),password=$("authPassword").value;
-  const button=$("authSubmitBtn");
-  button.disabled=true;error("authError","");
-  try{
-    if(authMode==="register"){
-      const cred=await auth.createUserWithEmailAndPassword(email,password);
+
+  const email = $("authEmail").value.trim();
+  const password = $("authPassword").value;
+  const button = $("authSubmitBtn");
+
+  button.disabled = true;
+  error("authError", "");
+
+  try {
+    if (authMode === "register") {
+      const cred = await auth.createUserWithEmailAndPassword(email, password);
+
       await db.collection("users").doc(cred.user.uid).set({
-        email,businessIds:[],createdAt:firebase.firestore.FieldValue.serverTimestamp()
+        email,
+        businessIds: [],
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
-    }else{
-      await auth.signInWithEmailAndPassword(email,password);
+    } else {
+      await auth.signInWithEmailAndPassword(email, password);
     }
-  }catch(err){
-    const msgs={
-      "auth/email-already-in-use":"Ese correo ya tiene una cuenta.",
-      "auth/invalid-email":"El correo no es válido.",
-      "auth/weak-password":"La contraseña debe tener al menos 6 caracteres.",
-      "auth/user-not-found":"No existe una cuenta con ese correo.",
-      "auth/wrong-password":"La contraseña es incorrecta.",
-      "auth/invalid-credential":"Correo o contraseña incorrectos.",
-      "auth/network-request-failed":"Revisá tu conexión."
+  } catch (err) {
+    const msgs = {
+      "auth/email-already-in-use": "Ese correo ya tiene una cuenta.",
+      "auth/invalid-email": "El correo no es válido.",
+      "auth/weak-password": "La contraseña debe tener al menos 6 caracteres.",
+      "auth/user-not-found": "No existe una cuenta con ese correo.",
+      "auth/wrong-password": "La contraseña es incorrecta.",
+      "auth/invalid-credential": "Correo o contraseña incorrectos.",
+      "auth/network-request-failed": "Revisá tu conexión."
     };
-    error("authError",msgs[err.code]||err.message||"No se pudo iniciar sesión.");
-  }finally{button.disabled=false}
+
+    error("authError", msgs[err.code] || err.message || "No se pudo iniciar sesión.");
+  } finally {
+    button.disabled = false;
+  }
 });
 
-$("tabCreateBiz").onclick=()=>setBusinessMode("create");
-$("tabJoinBiz").onclick=()=>setBusinessMode("join");
-function setBusinessMode(mode){
-  const create=mode==="create";
-  $("tabCreateBiz").classList.toggle("active",create);
-  $("tabJoinBiz").classList.toggle("active",!create);
-  show(create?"createBizForm":"joinBizForm");
-  hide(create?"joinBizForm":"createBizForm");
-  error("setupError","");
+$("tabCreateBiz").onclick = () => setBusinessMode("create");
+$("tabJoinBiz").onclick = () => setBusinessMode("join");
+
+function setBusinessMode(mode) {
+  const create = mode === "create";
+
+  $("tabCreateBiz").classList.toggle("active", create);
+  $("tabJoinBiz").classList.toggle("active", !create);
+
+  show(create ? "createBizForm" : "joinBizForm");
+  hide(create ? "joinBizForm" : "createBizForm");
+
+  error("setupError", "");
 }
 
-function clearListeners(){
-  [productUnsubscribe,salesUnsubscribe,businessUnsubscribe].forEach(fn=>{if(fn)fn()});
-  productUnsubscribe=salesUnsubscribe=businessUnsubscribe=null;
+function clearListeners() {
+  [productUnsubscribe, salesUnsubscribe, businessUnsubscribe].forEach(fn => {
+    if (fn) fn();
+  });
+
+  productUnsubscribe = null;
+  salesUnsubscribe = null;
+  businessUnsubscribe = null;
 }
 
-auth.onAuthStateChanged(async user=>{
-  currentUser=user;clearListeners();
-  if(!user){
-    currentBusiness=null;currentBusinessId=null;products=[];sales=[];businessList=[];
-    hide("app");hide("setup");show("authScreen");$("userEmailDisplay").textContent="";
+auth.onAuthStateChanged(async user => {
+  currentUser = user;
+  clearListeners();
+
+  if (!user) {
+    currentBusiness = null;
+    currentBusinessId = null;
+    products = [];
+    sales = [];
+    businessList = [];
+
+    hide("app");
+    hide("setup");
+    show("authScreen");
+
+    $("userEmailDisplay").textContent = "";
+    hide("headerLogout");
     return;
   }
-  hide("authScreen");setText("userEmailDisplay",user.email||"");
-  try{
-    const userRef=db.collection("users").doc(user.uid);
-    let userSnap=await userRef.get();
-    if(!userSnap.exists){
-      await userRef.set({email:user.email||"",businessIds:[]},{merge:true});
-      userSnap=await userRef.get();
+
+  hide("authScreen");
+  show("headerLogout");
+  setText("userEmailDisplay", user.email || "");
+
+  try {
+    const userRef = db.collection("users").doc(user.uid);
+    let userSnap = await userRef.get();
+
+    if (!userSnap.exists) {
+      await userRef.set({
+        email: user.email || "",
+        businessIds: []
+      }, { merge: true });
+
+      userSnap = await userRef.get();
     }
-    const ids=userSnap.data().businessIds||[];
-    businessList=[];
-    for(const id of ids){
-      const snap=await db.collection("businesses").doc(id).get();
-      if(snap.exists&&(snap.data().memberUids||[]).includes(user.uid))
-        businessList.push({id:snap.id,...snap.data()});
+
+    const ids = userSnap.data().businessIds || [];
+    businessList = [];
+
+    for (const id of ids) {
+      const snap = await db.collection("businesses").doc(id).get();
+
+      if (
+        snap.exists &&
+        (snap.data().memberUids || []).includes(user.uid)
+      ) {
+        businessList.push({
+          id: snap.id,
+          ...snap.data()
+        });
+      }
     }
-    const saved=localStorage.getItem("stockeaBusinessId");
-    const found=businessList.find(b=>b.id===saved);
-    if(found)await openBusiness(found.id);
-    else if(businessList.length===1)await openBusiness(businessList[0].id);
-    else showBusinessSetup();
-  }catch(err){
-    console.error(err);showBusinessSetup();
-    error("setupError","No se pudieron cargar los negocios. Revisá las reglas de Firestore.");
+
+    const saved = localStorage.getItem("stockeaBusinessId");
+    const found = businessList.find(b => b.id === saved);
+
+    if (found) {
+      await openBusiness(found.id);
+    } else if (businessList.length === 1) {
+      await openBusiness(businessList[0].id);
+    } else {
+      showBusinessSetup();
+    }
+  } catch (err) {
+    console.error(err);
+    showBusinessSetup();
+    error(
+      "setupError",
+      "No se pudieron cargar los negocios. Revisá las reglas de Firestore."
+    );
   }
 });
 
-function setText(id,value){if($(id))$(id).textContent=value??""}
-function showBusinessSetup(){hide("app");show("setup");setBusinessMode("create")}
+function showBusinessSetup() {
+  hide("app");
+  show("setup");
+  setBusinessMode("create");
+}
 
-$("createBizForm").addEventListener("submit",async e=>{
-  e.preventDefault();if(!currentUser)return;
-  const name=$("bizName").value.trim(),owners=$("owners").value.trim();
-  const type=$("businessType").value,categories=categoriesFrom($("categories").value);
-  if(!name||!owners||!categories.length){error("setupError","Completá los datos y agregá al menos una categoría.");return}
-  const button=e.submitter;if(button)button.disabled=true;
-  error("setupError","");
-  try{
-    const businessRef=db.collection("businesses").doc();
-    const code=makeCode();
-    const batch=db.batch();
-    batch.set(businessRef,{
-      name,owners,type,categories,accessCode:code,ownerUid:currentUser.uid,
-      memberUids:[currentUser.uid],createdAt:firebase.firestore.FieldValue.serverTimestamp()
+/*
+ * CREAR NEGOCIO
+ * La invitación se registra en openBusiness después de crear el negocio.
+ */
+$("createBizForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  if (!currentUser) return;
+
+  const name = $("bizName").value.trim();
+  const owners = $("owners").value.trim();
+  const type = $("businessType").value;
+  const categories = categoriesFrom($("categories").value);
+
+  if (!name || !owners || !categories.length) {
+    error("setupError", "Completá los datos y agregá al menos una categoría.");
+    return;
+  }
+
+  const button = e.submitter;
+  if (button) button.disabled = true;
+  error("setupError", "");
+
+  try {
+    const businessRef = db.collection("businesses").doc();
+    const code = makeCode();
+    const batch = db.batch();
+
+    batch.set(businessRef, {
+      name,
+      owners,
+      type,
+      categories,
+      accessCode: code,
+      ownerUid: currentUser.uid,
+      memberUids: [currentUser.uid],
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
-    batch.set(db.collection("users").doc(currentUser.uid),{
-      email:currentUser.email||"",
-      businessIds:firebase.firestore.FieldValue.arrayUnion(businessRef.id)
-    },{merge:true});
+
+    batch.set(db.collection("users").doc(currentUser.uid), {
+      email: currentUser.email || "",
+      businessIds: firebase.firestore.FieldValue.arrayUnion(businessRef.id)
+    }, { merge: true });
+
     await batch.commit();
     await openBusiness(businessRef.id);
-  }catch(err){console.error(err);error("setupError",err.message||"No se pudo crear el negocio.")}
-  finally{if(button)button.disabled=false}
+  } catch (err) {
+    console.error("Error al crear negocio:", err);
+    error(
+      "setupError",
+      err.message || "No se pudo crear el negocio."
+    );
+  } finally {
+    if (button) button.disabled = false;
+  }
 });
 
-$("joinBizForm").addEventListener("submit",async e=>{
-  e.preventDefault();if(!currentUser)return;
-  const code=$("joinCode").value.trim().toUpperCase();
-  const button=e.submitter;if(button)button.disabled=true;
-  error("setupError","");
-  try{
-    const result=await db.collection("businesses").where("accessCode","==",code).limit(1).get();
-    if(result.empty)throw new Error("No encontramos un negocio con ese código.");
-    const doc=result.docs[0],data=doc.data();
-    const batch=db.batch();
-    batch.update(doc.ref,{memberUids:firebase.firestore.FieldValue.arrayUnion(currentUser.uid)});
-    batch.set(db.collection("users").doc(currentUser.uid),{
-      email:currentUser.email||"",
-      businessIds:firebase.firestore.FieldValue.arrayUnion(doc.id)
-    },{merge:true});
+/*
+ * UNIRSE A UN NEGOCIO
+ * Busca el código como ID de documento en "invitaciones".
+ * No hace una consulta general a la colección "businesses".
+ */
+$("joinBizForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  if (!currentUser) return;
+
+  const code = $("joinCode").value.trim().toUpperCase();
+  const button = e.submitter;
+
+  if (!code) {
+    error("setupError", "Ingresá el código de invitación.");
+    return;
+  }
+
+  if (button) button.disabled = true;
+  error("setupError", "");
+
+  try {
+    const invitationRef = db.collection("invitaciones").doc(code);
+    const invitationSnap = await invitationRef.get();
+
+    if (!invitationSnap.exists) {
+      throw new Error(
+        "No encontramos ese código. Pedile al dueño que abra su negocio y revise la invitación."
+      );
+    }
+
+    const invitation = invitationSnap.data();
+    const businessId = invitation.businessId;
+
+    if (!businessId) {
+      throw new Error("El código de invitación no es válido.");
+    }
+
+    const businessRef = db.collection("businesses").doc(businessId);
+
+    /*
+     * No leemos el documento del negocio antes de unirnos:
+     * las reglas pueden impedir que un usuario que todavía
+     * no es miembro lo lea.
+     *
+     * Firestore valida la actualización mediante sus reglas.
+     */
+    const batch = db.batch();
+
+    batch.update(businessRef, {
+      memberUids: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
+    });
+
+    batch.set(db.collection("users").doc(currentUser.uid), {
+      email: currentUser.email || "",
+      businessIds: firebase.firestore.FieldValue.arrayUnion(businessId)
+    }, { merge: true });
+
     await batch.commit();
-    await openBusiness(doc.id);
-  }catch(err){console.error(err);error("setupError",err.message||"No se pudo ingresar al negocio.")}
-  finally{if(button)button.disabled=false}
+    await openBusiness(businessId);
+  } catch (err) {
+    console.error("Error al unirse al negocio:", err);
+
+    if (err.code === "permission-denied") {
+      error(
+        "setupError",
+        "Firebase bloqueó el acceso. Revisá las reglas de Firestore."
+      );
+    } else {
+      error(
+        "setupError",
+        err.message || "No se pudo ingresar al negocio."
+      );
+    }
+  } finally {
+    if (button) button.disabled = false;
+  }
 });
 
-async function openBusiness(id){
+/*
+ * ABRIR NEGOCIO
+ * Crea la invitación para negocios existentes que todavía
+ * no tengan un documento en la colección "invitaciones".
+ */
+async function openBusiness(id) {
   clearListeners();
-  const snap=await db.collection("businesses").doc(id).get();
-  if(!snap.exists)throw new Error("El negocio no existe.");
-  const data=snap.data();
-  if(!(data.memberUids||[]).includes(currentUser.uid))throw new Error("No tenés acceso a este negocio.");
-  currentBusinessId=id;currentBusiness={id,...data};
-  localStorage.setItem("stockeaBusinessId",id);
-  hide("authScreen");hide("setup");show("app");
-  setText("welcome",data.name);setText("storeSubInfo",data.type);setText("displayStoreCode",data.accessCode);
-  $("editBiz").value=data.name||"";$("editOwners").value=data.owners||"";
-  $("editType").value=data.type||"Otro";$("editCategories").value=(data.categories||[]).join(", ");
-  updateCategoryOptions();startListeners();showPage("dashboard");
+
+  const snap = await db.collection("businesses").doc(id).get();
+
+  if (!snap.exists) {
+    throw new Error("El negocio no existe.");
+  }
+
+  const data = snap.data();
+
+  if (!(data.memberUids || []).includes(currentUser.uid)) {
+    throw new Error("No tenés acceso a este negocio.");
+  }
+
+  if (!data.accessCode) {
+    throw new Error(
+      "Este negocio no tiene código de invitación. Revisá su configuración."
+    );
+  }
+
+  const code = String(data.accessCode).trim().toUpperCase();
+  const invitationRef = db.collection("invitaciones").doc(code);
+  const invitationSnap = await invitationRef.get();
+
+  if (!invitationSnap.exists) {
+    await invitationRef.set({
+      businessId: id,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  } else if (invitationSnap.data().businessId !== id) {
+    throw new Error(
+      "El código de invitación está asociado a otro negocio."
+    );
+  }
+
+  currentBusinessId = id;
+  currentBusiness = {
+    id,
+    ...data,
+    accessCode: code
+  };
+
+  localStorage.setItem("stockeaBusinessId", id);
+
+  hide("authScreen");
+  hide("setup");
+  show("app");
+
+  setText("welcome", data.name);
+  setText("storeSubInfo", data.type);
+  setText("displayStoreCode", code);
+
+  $("editBiz").value = data.name || "";
+  $("editOwners").value = data.owners || "";
+  $("editType").value = data.type || "Otro";
+  $("editCategories").value = (data.categories || []).join(", ");
+
+  updateCategoryOptions();
+  startListeners();
+  showPage("dashboard");
 }
 
-function startListeners(){
-  const base=db.collection("businesses").doc(currentBusinessId);
-  productUnsubscribe=base.collection("products").onSnapshot(s=>{
-    products=s.docs.map(d=>({id:d.id,...d.data()}));renderProducts();renderDashboard();
-  },e=>console.error("Productos:",e));
-  salesUnsubscribe=base.collection("sales").onSnapshot(s=>{
-    sales=s.docs.map(d=>({id:d.id,...d.data()}));
-    sales.sort((a,b)=>(b.createdAt?.toMillis?.()||0)-(a.createdAt?.toMillis?.()||0));
-    renderSales();renderDashboard();
-  },e=>console.error("Ventas:",e));
-  businessUnsubscribe=base.onSnapshot(s=>{
-    if(!s.exists)return;
-    currentBusiness={id:s.id,...s.data()};
-    setText("welcome",currentBusiness.name);setText("storeSubInfo",currentBusiness.type);
-    setText("displayStoreCode",currentBusiness.accessCode);
-    $("editBiz").value=currentBusiness.name||"";
-    $("editOwners").value=currentBusiness.owners||"";
-    $("editType").value=currentBusiness.type||"Otro";
-    $("editCategories").value=(currentBusiness.categories||[]).join(", ");
+function startListeners() {
+  const base = db.collection("businesses").doc(currentBusinessId);
+
+  productUnsubscribe = base.collection("products").onSnapshot(s => {
+    products = s.docs.map(d => ({
+      id: d.id,
+      ...d.data()
+    }));
+
+    renderProducts();
+    renderDashboard();
+  }, e => {
+    console.error("Productos:", e);
+  });
+
+  salesUnsubscribe = base.collection("sales").onSnapshot(s => {
+    sales = s.docs.map(d => ({
+      id: d.id,
+      ...d.data()
+    }));
+
+    sales.sort((a, b) =>
+      (b.createdAt?.toMillis?.() || 0) -
+      (a.createdAt?.toMillis?.() || 0)
+    );
+
+    renderSales();
+    renderDashboard();
+  }, e => {
+    console.error("Ventas:", e);
+  });
+
+  businessUnsubscribe = base.onSnapshot(s => {
+    if (!s.exists) return;
+
+    currentBusiness = {
+      id: s.id,
+      ...s.data()
+    };
+
+    setText("welcome", currentBusiness.name);
+    setText("storeSubInfo", currentBusiness.type);
+    setText("displayStoreCode", currentBusiness.accessCode);
+
+    $("editBiz").value = currentBusiness.name || "";
+    $("editOwners").value = currentBusiness.owners || "";
+    $("editType").value = currentBusiness.type || "Otro";
+    $("editCategories").value =
+      (currentBusiness.categories || []).join(", ");
+
     updateCategoryOptions();
-  },e=>console.error("Negocio:",e));
-}
-
-function showPage(page){
-  document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));
-  ["dashboard","stock","sales","settings"].forEach(id=>$(id).classList.toggle("hidden",id!==page));
-}
-document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>showPage(b.dataset.page));
-
-function updateCategoryOptions(){
-  const cats=currentBusiness?.categories||[];
-  ["pCategory","filterCategory"].forEach(id=>{
-    const select=$(id),old=select.value;
-    select.innerHTML=id==="filterCategory"?'<option value="">Todas las categorías</option>':'<option value="">Elegí una categoría</option>';
-    cats.forEach(c=>{const o=document.createElement("option");o.value=c;o.textContent=c;select.appendChild(o)});
-    if(cats.includes(old))select.value=old;
+  }, e => {
+    console.error("Negocio:", e);
   });
 }
 
-$("addProductBtn").onclick=()=>openProductForm();
-$("cancelProductBtn").onclick=()=>resetProductForm();
-function resetProductForm(){editingProductId=null;$("productForm").reset();$("imagePreview").innerHTML="";hide("productFormPanel")}
-function openProductForm(product=null){
-  editingProductId=product?.id||null;$("productForm").reset();
-  $("formTitle").textContent=product?"Editar producto":"Nuevo producto";
-  if(product){
-    $("pName").value=product.name||"";$("pCategory").value=product.category||"";
-    $("pColor").value=product.color||"";$("pColorCode").value=product.colorCode||"#568cff";
-    $("pCost").value=product.cost??0;$("pPrice").value=product.price??0;$("pQty").value=product.qty??0;
-    $("pCode").value=product.code||"";$("pImage").value=product.image||"";
-    $("imagePreview").innerHTML=product.image?`<img src="${product.image}" style="max-width:120px;border-radius:10px">`:"";
+function showPage(page) {
+  document.querySelectorAll("[data-page]").forEach(b => {
+    b.classList.toggle("active", b.dataset.page === page);
+  });
+
+  ["dashboard", "stock", "sales", "settings"].forEach(id => {
+    $(id).classList.toggle("hidden", id !== page);
+  });
+}
+
+document.querySelectorAll("[data-page]").forEach(b => {
+  b.onclick = () => showPage(b.dataset.page);
+});
+
+function updateCategoryOptions() {
+  const cats = currentBusiness?.categories || [];
+
+  ["pCategory", "filterCategory"].forEach(id => {
+    const select = $(id);
+    const old = select.value;
+
+    select.innerHTML = id === "filterCategory"
+      ? '<option value="">Todas las categorías</option>'
+      : '<option value="">Elegí una categoría</option>';
+
+    cats.forEach(c => {
+      const option = document.createElement("option");
+      option.value = c;
+      option.textContent = c;
+      select.appendChild(option);
+    });
+
+    if (cats.includes(old)) {
+      select.value = old;
+    }
+  });
+}
+
+/* PRODUCTOS */
+
+$("addProductBtn").onclick = () => openProductForm();
+$("cancelProductBtn").onclick = () => resetProductForm();
+
+function resetProductForm() {
+  editingProductId = null;
+  $("productForm").reset();
+  $("pImage").value = "";
+  $("pImageFile").value = "";
+  $("imagePreview").innerHTML = "";
+  hide("productFormPanel");
+}
+
+function openProductForm(product = null) {
+  editingProductId = product?.id || null;
+  $("productForm").reset();
+  $("pImage").value = "";
+  $("pImageFile").value = "";
+  $("imagePreview").innerHTML = "";
+
+  $("formTitle").textContent = product
+    ? "Editar producto"
+    : "Nuevo producto";
+
+  if (product) {
+    $("pName").value = product.name || "";
+    $("pCategory").value = product.category || "";
+    $("pColor").value = product.color || "";
+    $("pColorCode").value = product.colorCode || "#568cff";
+    $("pCost").value = product.cost ?? 0;
+    $("pPrice").value = product.price ?? 0;
+    $("pQty").value = product.qty ?? 0;
+    $("pCode").value = product.code || "";
+    $("pImage").value = product.image || "";
+
+    $("imagePreview").innerHTML = product.image
+      ? `<img src="${product.image}" style="max-width:120px;border-radius:10px" alt="Vista previa">`
+      : "";
   }
+
   show("productFormPanel");
 }
 
-function compressImage(file){
-  return new Promise((resolve,reject)=>{
-    const reader=new FileReader();
-    reader.onerror=()=>reject(new Error("No se pudo leer la imagen."));
-    reader.onload=()=>{
-      const img=new Image();
-      img.onerror=()=>reject(new Error("Imagen inválida."));
-      img.onload=()=>{
-        const scale=Math.min(1,400/Math.max(img.width,img.height));
-        const canvas=document.createElement("canvas");
-        canvas.width=Math.max(1,Math.round(img.width*scale));
-        canvas.height=Math.max(1,Math.round(img.height*scale));
-        canvas.getContext("2d").drawImage(img,0,0,canvas.width,canvas.height);
-        resolve(canvas.toDataURL("image/jpeg",.7));
+function compressImage(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onerror = () => reject(
+      new Error("No se pudo leer la imagen.")
+    );
+
+    reader.onload = () => {
+      const img = new Image();
+
+      img.onerror = () => reject(
+        new Error("Imagen inválida.")
+      );
+
+      img.onload = () => {
+        const scale = Math.min(
+          1,
+          400 / Math.max(img.width, img.height)
+        );
+
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(img.width * scale));
+        canvas.height = Math.max(1, Math.round(img.height * scale));
+
+        canvas.getContext("2d").drawImage(
+          img,
+          0,
+          0,
+          canvas.width,
+          canvas.height
+        );
+
+        resolve(canvas.toDataURL("image/jpeg", 0.7));
       };
-      img.src=reader.result;
+
+      img.src = reader.result;
     };
+
     reader.readAsDataURL(file);
   });
 }
-$("pImageFile").addEventListener("change",async e=>{
-  const file=e.target.files?.[0];if(!file)return;
-  try{
-    if(!file.type.startsWith("image/"))throw new Error("Elegí una imagen.");
-    $("pImage").value=await compressImage(file);
-    $("imagePreview").innerHTML=`<img src="${$("pImage").value}" style="max-width:120px;border-radius:10px">`;
-  }catch(err){alert(err.message)}
+
+$("pImageFile").addEventListener("change", async e => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  try {
+    if (!file.type.startsWith("image/")) {
+      throw new Error("Elegí una imagen.");
+    }
+
+    const image = await compressImage(file);
+    $("pImage").value = image;
+
+    $("imagePreview").innerHTML =
+      `<img src="${image}" style="max-width:120px;border-radius:10px" alt="Vista previa">`;
+  } catch (err) {
+    alert(err.message);
+  }
 });
 
-$("productForm").addEventListener("submit",async e=>{
-  e.preventDefault();if(!currentBusinessId)return;
-  const cost=Number($("pCost").value),price=Number($("pPrice").value),qty=Number($("pQty").value);
-  if(cost<0||price<=0||qty<0||!Number.isInteger(qty)){alert("Revisá los precios y la cantidad.");return}
-  const button=e.submitter;if(button)button.disabled=true;
-  try{
-    const data={
-      name:$("pName").value.trim(),category:$("pCategory").value,
-      color:$("pColor").value.trim(),colorCode:$("pColorCode").value,
-      cost,price,qty,code:$("pCode").value.trim(),image:$("pImage").value||"",
-      updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+$("productForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  if (!currentBusinessId) return;
+
+  const cost = Number($("pCost").value);
+  const price = Number($("pPrice").value);
+  const qty = Number($("pQty").value);
+
+  if (
+    !Number.isFinite(cost) ||
+    !Number.isFinite(price) ||
+    !Number.isFinite(qty) ||
+    cost < 0 ||
+    price <= 0 ||
+    qty < 0 ||
+    !Number.isInteger(qty)
+  ) {
+    alert("Revisá los precios y la cantidad.");
+    return;
+  }
+
+  const button = e.submitter;
+  if (button) button.disabled = true;
+
+  try {
+    const data = {
+      name: $("pName").value.trim(),
+      category: $("pCategory").value,
+      color: $("pColor").value.trim(),
+      colorCode: $("pColorCode").value,
+      cost,
+      price,
+      qty,
+      code: $("pCode").value.trim(),
+      image: $("pImage").value || "",
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     };
-    const col=db.collection("businesses").doc(currentBusinessId).collection("products");
-    if(editingProductId)await col.doc(editingProductId).update(data);
-    else await col.add({...data,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+
+    if (!data.name || !data.category) {
+      throw new Error("Completá el nombre y la categoría.");
+    }
+
+    const col = db.collection("businesses")
+      .doc(currentBusinessId)
+      .collection("products");
+
+    if (editingProductId) {
+      await col.doc(editingProductId).update(data);
+    } else {
+      await col.add({
+        ...data,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+
     resetProductForm();
-  }catch(err){console.error(err);alert(err.message||"No se pudo guardar el producto.")}
-  finally{if(button)button.disabled=false}
+  } catch (err) {
+    console.error(err);
+    alert(err.message || "No se pudo guardar el producto.");
+  } finally {
+    if (button) button.disabled = false;
+  }
 });
 
-$("search").oninput=renderProducts;$("filterCategory").onchange=renderProducts;
-function renderProducts(){
-  const term=$("search").value.toLowerCase().trim(),cat=$("filterCategory").value;
-  const list=products.filter(p=>(!cat||p.category===cat)&&[p.name,p.category,p.color,p.code].some(v=>String(v||"").toLowerCase().includes(term)));
-  if(!list.length){$("productList").innerHTML='<div class="empty">Todavía no hay productos o no hay coincidencias.</div>';return}
-  $("productList").innerHTML=list.map(p=>`
+$("search").oninput = renderProducts;
+$("filterCategory").onchange = renderProducts;
+
+function renderProducts() {
+  const term = $("search").value.toLowerCase().trim();
+  const cat = $("filterCategory").value;
+
+  const list = products.filter(p =>
+    (!cat || p.category === cat) &&
+    [p.name, p.category, p.color, p.code].some(v =>
+      String(v || "").toLowerCase().includes(term)
+    )
+  );
+
+  if (!list.length) {
+    $("productList").innerHTML =
+      '<div class="empty">Todavía no hay productos o no hay coincidencias.</div>';
+    return;
+  }
+
+  $("productList").innerHTML = list.map(p => `
     <div class="product">
-      ${p.image?`<img class="thumb" src="${p.image}" alt="">`:'<div class="thumb" style="display:grid;place-items:center;background:#0c1426">📦</div>'}
-      <div class="product-info"><strong>${clean(p.name)}</strong>
-        <p>${clean(p.category)} · ${clean(p.color||"Sin detalle")}</p>
-        <p>Stock: <b>${Number(p.qty)||0}</b> · Precio: <b>${money(p.price)}</b></p>
-        <p>Costo: ${money(p.cost)} · Código: ${clean(p.code||"—")}</p>
+      ${p.image
+        ? `<img class="thumb" src="${p.image}" alt="">`
+        : '<div class="thumb" style="display:grid;place-items:center;background:#0c1426">📦</div>'
+      }
+      <div class="product-info">
+        <strong>${clean(p.name)}</strong>
+        <p>${clean(p.category)} · ${clean(p.color || "Sin detalle")}</p>
+        <p>Stock: <b>${Number(p.qty) || 0}</b> · Precio: <b>${money(p.price)}</b></p>
+        <p>Costo: ${money(p.cost)} · Código: ${clean(p.code || "—")}</p>
       </div>
       <div class="product-actions">
-        <button data-edit="${p.id}">Editar</button><button data-sell="${p.id}">Vender</button><button class="danger" data-del="${p.id}">Eliminar</button>
+        <button data-edit="${p.id}">Editar</button>
+        <button data-sell="${p.id}">Vender</button>
+        <button class="danger" data-del="${p.id}">Eliminar</button>
       </div>
-    </div>`).join("");
-  $("productList").querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>openProductForm(products.find(p=>p.id===b.dataset.edit)));
-  $("productList").querySelectorAll("[data-sell]").forEach(b=>b.onclick=()=>sellProduct(b.dataset.sell));
-  $("productList").querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>deleteProduct(b.dataset.del));
-}
+    </div>
+  `).join("");
 
-async function deleteProduct(id){
-  const p=products.find(x=>x.id===id);if(!p||!confirm(`¿Eliminar "${p.name}"?`))return;
-  try{await db.collection("businesses").doc(currentBusinessId).collection("products").doc(id).delete()}
-  catch(e){alert("No se pudo eliminar el producto.");console.error(e)}
-}
-
-async function sellProduct(id){
-  const p=products.find(x=>x.id===id);if(!p)return;
-  const qty=Number(prompt(`Producto: ${p.name}\nStock: ${p.qty}\n¿Cuántas unidades vendiste?`));
-  if(!Number.isInteger(qty)||qty<=0)return alert("Ingresá una cantidad válida.");
-  const base=db.collection("businesses").doc(currentBusinessId);
-  const productRef=base.collection("products").doc(id),saleRef=base.collection("sales").doc();
-  try{
-    await db.runTransaction(async t=>{
-      const snap=await t.get(productRef);if(!snap.exists)throw new Error("El producto ya no existe.");
-      const data=snap.data(),available=Number(data.qty)||0;
-      if(available<qty)throw new Error("No hay suficiente stock.");
-      const price=Number(data.price)||0,cost=Number(data.cost)||0;
-      t.update(productRef,{qty:available-qty,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
-      t.set(saleRef,{productId:id,productName:data.name,category:data.category,quantity:qty,unitPrice:price,unitCost:cost,total:price*qty,profit:(price-cost)*qty,createdBy:currentUser.uid,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
-    });
-    alert("¡Venta registrada!");
-  }catch(e){alert(e.message||"No se pudo registrar la venta.");console.error(e)}
-}
-
-function renderSales(){
-  $("allSales").innerHTML=sales.length?sales.map(s=>{
-    const date=s.createdAt?.toDate?s.createdAt.toDate().toLocaleString("es-AR"):"Fecha pendiente";
-    return `<div class="sale"><div><strong>${clean(s.productName)}</strong><p>${clean(date)} · Cantidad: ${Number(s.quantity)||0}</p></div><div><strong>${money(s.total)}</strong><p>Ganancia: ${money(s.profit)}</p></div></div>`;
-  }).join(""):'<p class="empty">Todavía no hay ventas.</p>';
-}
-
-$("periodFilter").onchange=renderDashboard;
-function renderDashboard(){
-  const period=$("periodFilter").value,now=new Date(),start=new Date(now);
-  if(period==="today")start.setHours(0,0,0,0);
-  else if(period==="week"){start.setDate(start.getDate()-6);start.setHours(0,0,0,0)}
-  else if(period==="month"){start.setDate(1);start.setHours(0,0,0,0)}
-  const filtered=sales.filter(s=>{
-    if(period==="all")return true;
-    const d=s.createdAt?.toDate?.();return d&&d>=start;
+  $("productList").querySelectorAll("[data-edit]").forEach(b => {
+    b.onclick = () => {
+      const product = products.find(p => p.id === b.dataset.edit);
+      if (product) openProductForm(product);
+    };
   });
-  setText("statSales",money(filtered.reduce((a,s)=>a+(Number(s.total)||0),0)));
-  setText("statProfit",money(filtered.reduce((a,s)=>a+(Number(s.profit)||0),0)));
-  setText("statStock",products.reduce((a,p)=>a+(Number(p.qty)||0),0));
-  setText("statValue",money(products.reduce((a,p)=>a+(Number(p.qty)||0)*(Number(p.cost)||0),0)));
-  const counts={};
-  filtered.forEach(s=>{const k=s.productId||s.productName;counts[k]??={name:s.productName,qty:0};counts[k].qty+=Number(s.quantity)||0});
-  const top=Object.values(counts).sort((a,b)=>b.qty-a.qty)[0];
-  setText("topProduct",top?`${top.name} (${top.qty} unidades)`:"Todavía no hay ventas.");
-  $("recentSales").innerHTML=filtered.slice(0,5).map(s=>`<div class="sale"><span>${clean(s.productName)} · ${Number(s.quantity)||0} u.</span><b>${money(s.total)}</b></div>`).join("")||'<p class="empty">Todavía no hay ventas.</p>';
-  const low=products.filter(p=>Number(p.qty)<=3);
-  $("lowStock").innerHTML=low.map(p=>`<div class="sale"><span>${clean(p.name)}</span><b>${Number(p.qty)||0} disponibles</b></div>`).join("")||'<p class="empty">No hay productos con stock bajo.</p>';
+
+  $("productList").querySelectorAll("[data-sell]").forEach(b => {
+    b.onclick = () => sellProduct(b.dataset.sell);
+  });
+
+  $("productList").querySelectorAll("[data-del]").forEach(b => {
+    b.onclick = () => deleteProduct(b.dataset.del);
+  });
 }
 
-$("settingsForm").addEventListener("submit",async e=>{
-  e.preventDefault();if(!currentBusinessId)return;
-  const name=$("editBiz").value.trim(),owners=$("editOwners").value.trim(),type=$("editType").value,categories=categoriesFrom($("editCategories").value);
-  if(!name||!owners||!categories.length)return alert("Completá todos los datos.");
-  try{
-    await db.collection("businesses").doc(currentBusinessId).update({name,owners,type,categories,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
+async function deleteProduct(id) {
+  const p = products.find(x => x.id === id);
+  if (!p || !confirm(`¿Eliminar "${p.name}"?`)) return;
+
+  try {
+    await db.collection("businesses")
+      .doc(currentBusinessId)
+      .collection("products")
+      .doc(id)
+      .delete();
+  } catch (e) {
+    alert("No se pudo eliminar el producto.");
+    console.error(e);
+  }
+}
+
+/* VENTAS */
+
+async function sellProduct(id) {
+  const p = products.find(x => x.id === id);
+  if (!p) return;
+
+  const raw = prompt(
+    `Producto: ${p.name}\nStock: ${p.qty}\n¿Cuántas unidades vendiste?`
+  );
+
+  if (raw === null) return;
+
+  const qty = Number(raw);
+
+  if (!Number.isInteger(qty) || qty <= 0) {
+    alert("Ingresá una cantidad válida.");
+    return;
+  }
+
+  const base = db.collection("businesses").doc(currentBusinessId);
+  const productRef = base.collection("products").doc(id);
+  const saleRef = base.collection("sales").doc();
+
+  try {
+    await db.runTransaction(async t => {
+      const snap = await t.get(productRef);
+
+      if (!snap.exists) {
+        throw new Error("El producto ya no existe.");
+      }
+
+      const data = snap.data();
+      const available = Number(data.qty) || 0;
+
+      if (available < qty) {
+        throw new Error("No hay suficiente stock.");
+      }
+
+      const price = Number(data.price) || 0;
+      const cost = Number(data.cost) || 0;
+
+      t.update(productRef, {
+        qty: available - qty,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      t.set(saleRef, {
+        productId: id,
+        productName: data.name,
+        category: data.category,
+        quantity: qty,
+        unitPrice: price,
+        unitCost: cost,
+        total: price * qty,
+        profit: (price - cost) * qty,
+        createdBy: currentUser.uid,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    });
+
+    alert("¡Venta registrada!");
+  } catch (e) {
+    alert(e.message || "No se pudo registrar la venta.");
+    console.error(e);
+  }
+}
+
+function renderSales() {
+  $("allSales").innerHTML = sales.length
+    ? sales.map(s => {
+        const date = s.createdAt?.toDate
+          ? s.createdAt.toDate().toLocaleString("es-AR")
+          : "Fecha pendiente";
+
+        return `
+          <div class="sale">
+            <div>
+              <strong>${clean(s.productName)}</strong>
+              <p>${clean(date)} · Cantidad: ${Number(s.quantity) || 0}</p>
+            </div>
+            <div>
+              <strong>${money(s.total)}</strong>
+              <p>Ganancia: ${money(s.profit)}</p>
+            </div>
+          </div>
+        `;
+      }).join("")
+    : '<p class="empty">Todavía no hay ventas.</p>';
+}
+
+/* RESUMEN Y FINANZAS */
+
+$("periodFilter").onchange = renderDashboard;
+
+function renderDashboard() {
+  const period = $("periodFilter").value;
+  const now = new Date();
+  const start = new Date(now);
+
+  if (period === "today") {
+    start.setHours(0, 0, 0, 0);
+  } else if (period === "week") {
+    start.setDate(start.getDate() - 6);
+    start.setHours(0, 0, 0, 0);
+  } else if (period === "month") {
+    start.setDate(1);
+    start.setHours(0, 0, 0, 0);
+  }
+
+  const filtered = sales.filter(s => {
+    if (period === "all") return true;
+    const date = s.createdAt?.toDate?.();
+    return date && date >= start;
+  });
+
+  setText(
+    "statSales",
+    money(filtered.reduce((a, s) => a + (Number(s.total) || 0), 0))
+  );
+
+  setText(
+    "statProfit",
+    money(filtered.reduce((a, s) => a + (Number(s.profit) || 0), 0))
+  );
+
+  setText(
+    "statStock",
+    products.reduce((a, p) => a + (Number(p.qty) || 0), 0)
+  );
+
+  setText(
+    "statValue",
+    money(products.reduce(
+      (a, p) => a + (Number(p.qty) || 0) * (Number(p.cost) || 0),
+      0
+    ))
+  );
+
+  const counts = {};
+
+  filtered.forEach(s => {
+    const key = s.productId || s.productName;
+
+    if (!counts[key]) {
+      counts[key] = {
+        name: s.productName,
+        qty: 0
+      };
+    }
+
+    counts[key].qty += Number(s.quantity) || 0;
+  });
+
+  const top = Object.values(counts).sort((a, b) => b.qty - a.qty)[0];
+
+  setText(
+    "topProduct",
+    top ? `${top.name} (${top.qty} unidades)` : "Todavía no hay ventas."
+  );
+
+  $("recentSales").innerHTML = filtered.slice(0, 5).map(s => `
+    <div class="sale">
+      <span>${clean(s.productName)} · ${Number(s.quantity) || 0} u.</span>
+      <b>${money(s.total)}</b>
+    </div>
+  `).join("") || '<p class="empty">Todavía no hay ventas.</p>';
+
+  const low = products.filter(p => Number(p.qty) <= 3);
+
+  $("lowStock").innerHTML = low.map(p => `
+    <div class="sale">
+      <span>${clean(p.name)}</span>
+      <b>${Number(p.qty) || 0} disponibles</b>
+    </div>
+  `).join("") || '<p class="empty">No hay productos con stock bajo.</p>';
+}
+
+/* CONFIGURACIÓN DEL NEGOCIO */
+
+$("settingsForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  if (!currentBusinessId) return;
+
+  const name = $("editBiz").value.trim();
+  const owners = $("editOwners").value.trim();
+  const type = $("editType").value;
+  const categories = categoriesFrom($("editCategories").value);
+
+  if (!name || !owners || !categories.length) {
+    alert("Completá todos los datos.");
+    return;
+  }
+
+  try {
+    await db.collection("businesses").doc(currentBusinessId).update({
+      name,
+      owners,
+      type,
+      categories,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
     alert("Configuración guardada.");
-  }catch(err){console.error(err);alert("No se pudo guardar. Revisá las reglas de Firestore.")}
+  } catch (err) {
+    console.error(err);
+    alert("No se pudo guardar. Revisá las reglas de Firestore.");
+  }
 });
 
-$("copyStoreCode").onclick=async()=>{
-  const code=currentBusiness?.accessCode;if(!code)return;
-  try{await navigator.clipboard.writeText(code);alert("Código copiado: "+code)}
-  catch{alert("Tu código es: "+code)}
-};
+$("copyStoreCode").onclick = async () => {
+  const code = currentBusiness?.accessCode;
+  if (!code) return;
 
-function setText(id,value){if($(id))$(id).textContent=value??""}
+  try {
+    await navigator.clipboard.writeText(code);
+    alert("Código copiado: " + code);
+  } catch {
+    alert("Tu código es: " + code);
+  }
+};
 </script>
 </body>
-  </html>
+            </html>
