@@ -123,7 +123,7 @@ display:flex;align-items:center;justify-content:center}
 <div id="setup" class="panel hidden">
  <div class="logo">Stockeá<span>.</span></div>
  <h1>Configuremos tu negocio</h1>
- <p class="sub">Completá estos datos para sincronizar con tu cuenta de correo.</p>
+ <p class="sub">Completá estos datos para sincronizar con tu correo.</p>
  <form id="setupForm">
   <div class="field"><label>Nombre del negocio *</label>
    <input id="bizName" required placeholder="Ej. Mi Emprendimiento"></div>
@@ -260,7 +260,7 @@ display:flex;align-items:center;justify-content:center}
    </div>
   </section>
 
-  <p class="notice">Stockeá — Vinculado a tu cuenta de Firebase.</p>
+  <p class="notice">Stockeá — Sincronizado por correo de usuario.</p>
  </main>
 </div>
 
@@ -293,11 +293,9 @@ let unsubscribeBiz = null;
 let unsubscribeProd = null;
 let unsubscribeSales = null;
 
-// Usaremos un ID de negocio fijo basado en el email principal o un identificador único global común para los dueños
-// Para que Bruno y Santi compartan el mismo negocio exacto, usaremos una clave limpia basada en el correo principal o un ID maestro unificado.
-function getStoreId(user) {
-  // Si querés que ambos compartan el mismo negocio exacto, podés usar un ID fijo para su proyecto:
-  return "negocio_principal_stockea"; 
+// Convertir el email en un ID válido para Firestore reemplazando puntos y símbolos
+function getStoreId(email) {
+  return email.toLowerCase().replace(/[^a-z0-9]/g, '_');
 }
 
 function toggleAuthTab(mode){
@@ -349,7 +347,7 @@ auth.onAuthStateChanged(user => {
 });
 
 function loadUserCloudData(user){
- const storeId = getStoreId(user);
+ const storeId = getStoreId(user.email);
  const bizRef = db.collection('businesses').doc(storeId);
  
  if(unsubscribeBiz) unsubscribeBiz();
@@ -395,7 +393,7 @@ $('setupForm').onsubmit = async e => {
   ownerEmail: currentUser.email
  };
 
- const storeId = getStoreId(currentUser);
+ const storeId = getStoreId(currentUser.email);
  await db.collection('businesses').doc(storeId).set(bizData);
 };
 
@@ -549,7 +547,7 @@ $('productForm').onsubmit = async e => {
   code: $('pCode').value.trim()
  };
 
- const storeId = getStoreId(currentUser);
+ const storeId = getStoreId(currentUser.email);
  const colRef = db.collection('businesses').doc(storeId).collection('products');
  if (editingId) {
   await colRef.doc(editingId).update(pData);
@@ -573,7 +571,7 @@ function editProduct(id){
 async function quickQty(id, delta){
  const p = products.find(x => x.id === id); if(!p || !currentUser) return;
  if (p.qty + delta < 0) return;
- const storeId = getStoreId(currentUser);
+ const storeId = getStoreId(currentUser.email);
  await db.collection('businesses').doc(storeId).collection('products').doc(id).update({
   qty: p.qty + delta
  });
@@ -581,7 +579,7 @@ async function quickQty(id, delta){
 
 async function deleteProduct(id){
  if (confirm('¿Eliminar este producto?') && currentUser) {
-  const storeId = getStoreId(currentUser);
+  const storeId = getStoreId(currentUser.email);
   await db.collection('businesses').doc(storeId).collection('products').doc(id).delete();
  }
 }
@@ -605,7 +603,7 @@ async function sell(id){
  const totalCost = p.cost * qtySold;
  const profit = total - totalCost;
 
- const storeId = getStoreId(currentUser);
+ const storeId = getStoreId(currentUser.email);
  const storeRef = db.collection('businesses').doc(storeId);
  await storeRef.collection('products').doc(id).update({ qty: p.qty - qtySold });
  await storeRef.collection('sales').add({
@@ -637,7 +635,7 @@ $('settingsForm').onsubmit = async e => {
  e.preventDefault();
  if (!currentUser) return;
  const cats = $('editCategories').value.split(',').map(s=>s.trim()).filter(Boolean);
- const storeId = getStoreId(currentUser);
+ const storeId = getStoreId(currentUser.email);
  await db.collection('businesses').doc(storeId).update({
   name: $('editBiz').value.trim(),
   owners: $('editOwners').value.trim(),
