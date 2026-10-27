@@ -1110,6 +1110,8 @@ window.addEventListener("DOMContentLoaded", async () => {
     hide("homeScreen");
     hide("setup");
     hide("app");
+    hide("headerAvatar");
+    hide("headerLogout");
     await loadPublicCatalog(catalogCode);
   }
 });
@@ -2071,7 +2073,7 @@ auth.onAuthStateChanged(async user => {
     if (!userSnap.exists) {
       await userRef.set({ email: user.email || "", businessIds: [] }, { merge: true });
     } else {
-    const uData = userSnap.data();
+      const uData = userSnap.data();
       userProfile = {
         displayName: uData.displayName || "",
         photoURL: uData.photoURL || ""
