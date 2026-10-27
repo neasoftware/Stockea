@@ -130,7 +130,6 @@ header {
 .secondary { background:#2b3953 }
 .whatsapp-btn { background:#25d366; color:black }
 
-/* Ocultar nombre de archivo feo */
 .file-upload-wrapper {
   position: relative;
   overflow: hidden;
@@ -248,7 +247,6 @@ h2 { font-size:20px }
   margin-top:25px;
 }
 
-/* CARRITO FLOTANTE Y MIEMBROS */
 .members-list {
   display:flex;
   flex-direction:column;
@@ -320,7 +318,6 @@ h2 { font-size:20px }
   font-size:12px;
 }
 
-/* HOME Y PRODUCTOS */
 #homeScreen main { padding-top:30px }
 .home-title {
   display:flex;
@@ -525,6 +522,7 @@ h2 { font-size:20px }
   <div class="logo">Stockeá<span>.</span></div>
   <div class="user-header-info">
     <button id="headerLogout" class="secondary hidden" style="font-size:12px; padding:8px 10px;">🚪 Salir / Cambiar</button>
+    <span id="userEmailDisplay" class="muted" style="cursor:pointer;" title="Ir a mi perfil"></span>
     <div id="headerAvatar" class="avatar-mini hidden" title="Ir a mi perfil">👤</div>
   </div>
 </header>
@@ -1439,7 +1437,6 @@ const openProfileView = () => {
 
 $("headerAvatar").onclick = openProfileView;
 $("userEmailDisplay").onclick = openProfileView;
-$("userEmailDisplay").style.cursor = "pointer";
 
 /* =========================
    CONFIGURACIÓN CREAR / UNIR
