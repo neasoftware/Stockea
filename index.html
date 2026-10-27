@@ -130,7 +130,7 @@ header {
 .secondary { background:#2b3953 }
 .whatsapp-btn { background:#25d366; color:black }
 
-/* Ocultar nombre de archivo feo y mostrar botón limpio */
+/* Ocultar nombre de archivo feo */
 .file-upload-wrapper {
   position: relative;
   overflow: hidden;
@@ -525,7 +525,6 @@ h2 { font-size:20px }
   <div class="logo">Stockeá<span>.</span></div>
   <div class="user-header-info">
     <button id="headerLogout" class="secondary hidden" style="font-size:12px; padding:8px 10px;">🚪 Salir / Cambiar</button>
-    <span id="userEmailDisplay" class="muted"></span>
     <div id="headerAvatar" class="avatar-mini hidden" title="Ir a mi perfil">👤</div>
   </div>
 </header>
@@ -684,7 +683,6 @@ h2 { font-size:20px }
     <button data-page="stock">▦ Stock</button>
     <button data-page="sales">↗ Ventas</button>
     <button data-page="settings">⚙ Mi negocio</button>
-    <button data-page="profile">👤 Perfil</button>
   </nav>
 
   <main>
@@ -1408,7 +1406,7 @@ $("backHomeBtn").onclick = async () => {
 };
 
 /* =========================
-   CAMBIO DE PANTALLAS
+   CAMBIO DE PANTALLAS (SIN PERFIL EN MENÚ)
 ========================= */
 document.querySelectorAll("nav [data-page]").forEach(button => {
   button.addEventListener("click", () => {
@@ -1425,19 +1423,23 @@ document.querySelectorAll("nav [data-page]").forEach(button => {
     if (page === "stock") renderProducts();
     if (page === "sales") renderSales();
     if (page === "settings") renderMembersList();
-    if (page === "profile") loadProfileSection();
   });
 });
 
-$("headerAvatar").onclick = () => {
+// Al hacer clic en tu avatar o nombre arriba a la derecha, se abre la sección de perfil
+const openProfileView = () => {
   document.querySelectorAll("nav [data-page]").forEach(item => {
-    item.classList.toggle("active", item.dataset.page === "profile");
+    item.classList.remove("active");
   });
   ["dashboard", "stock", "sales", "settings", "profile"].forEach(id => {
     $(id).classList.toggle("hidden", id !== "profile");
   });
   loadProfileSection();
 };
+
+$("headerAvatar").onclick = openProfileView;
+$("userEmailDisplay").onclick = openProfileView;
+$("userEmailDisplay").style.cursor = "pointer";
 
 /* =========================
    CONFIGURACIÓN CREAR / UNIR
