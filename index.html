@@ -837,6 +837,7 @@ h2 { font-size:20px }
     <button class="active" data-page="dashboard">⌂ Resumen</button>
     <button data-page="stock">▦ Stock</button>
     <button data-page="sales">↗ Ventas</button>
+    <button data-page="clients">👥 Clientes</button>
     <button data-page="settings">⚙ Mi negocio</button>
   </nav>
 
@@ -869,7 +870,7 @@ h2 { font-size:20px }
           <div class="card"><p>Efectivo</p><strong id="statCash" style="font-size:19px">$0</strong></div>
           <div class="card"><p>Transferencia / MP</p><strong id="statTransfer" style="font-size:19px">$0</strong></div>
           <div class="card"><p>Tarjeta</p><strong id="statCard" style="font-size:19px">$0</strong></div>
-          <div class="card"><p>Otros</p><strong id="statOther" style="font-size:19px">$0</strong></div>
+          <div class="card"><p>Cuenta Corriente</p><strong id="statFiado" style="font-size:19px">$0</strong></div>
         </div>
       </div>
 
@@ -946,6 +947,55 @@ h2 { font-size:20px }
         </form>
       </div>
     </section>
+
+    <!-- SECCIÓN DE CLIENTES Y FIADOS -->
+    <section id="clients" class="hidden">
+      <div class="sectionhead">
+        <div>
+          <h1>Clientes y Cuentas Corrientes</h1>
+          <p class="sub">Gestión de créditos y fiados de clientes.</p>
+        </div>
+        <button id="addClientBtn">+ Nuevo cliente</button>
+      </div>
+
+      <div class="toolbar">
+        <input id="searchClient" placeholder="🔎 Buscar cliente por nombre o teléfono...">
+      </div>
+
+      <div class="panel" style="margin-top:10px">
+        <div id="clientsList"><div class="empty">No hay clientes registrados.</div></div>
+      </div>
+    </section>
+
+    <!-- MODAL NUEVO CLIENTE -->
+    <div id="clientModal" class="panel hidden" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1000;width:90%;max-width:440px;box-shadow:0 10px 25px rgba(0,0,0,0.8)">
+      <div class="sectionhead">
+        <h2>👥 Registrar Cliente</h2>
+        <button id="closeClientModalBtn" class="secondary" style="padding:4px 10px" type="button">✕</button>
+      </div>
+      <form id="clientForm" style="margin-top:15px">
+        <div class="field"><label>Nombre y Apellido *</label><input id="cName" required placeholder="Juan Pérez"></div>
+        <div class="field"><label>Teléfono / WhatsApp *</label><input id="cPhone" required placeholder="3794123456"></div>
+        <div class="field"><label>Dirección / Observaciones</label><input id="cNotes" placeholder="Barrio, zona, etc."></div>
+        <button type="submit" style="width:100%; margin-top:10px">Guardar cliente</button>
+      </form>
+    </div>
+
+    <!-- MODAL REGISTRAR PAGO DE CLIENTE -->
+    <div id="paymentModal" class="panel hidden" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1000;width:90%;max-width:440px;box-shadow:0 10px 25px rgba(0,0,0,0.8)">
+      <div class="sectionhead">
+        <h2>💵 Registrar Abono / Pago</h2>
+        <button id="closePaymentModalBtn" class="secondary" style="padding:4px 10px" type="button">✕</button>
+      </div>
+      <div style="margin:15px 0">
+        <p id="paymentClientInfo" style="margin:0 0 10px; font-weight:bold;"></p>
+        <form id="paymentForm">
+          <input type="hidden" id="paymentClientId">
+          <div class="field"><label>Monto a abonar ($) *</label><input id="paymentAmount" type="number" min="0.01" step=".01" required placeholder="0.00"></div>
+          <button type="submit" style="width:100%; margin-top:10px">Confirmar pago y descontar deuda</button>
+        </form>
+      </div>
+    </div>
 
     <section id="sales" class="hidden">
       <div class="sectionhead">
@@ -1081,12 +1131,14 @@ let currentBusiness = null;
 let currentBusinessId = null;
 let products = [];
 let sales = [];
+let clients = [];
 let businessList = [];
 let cart = []; 
 let authMode = "login";
 let editingProductId = null;
 let productUnsubscribe = null;
 let salesUnsubscribe = null;
+let clientsUnsubscribe = null;
 
 const $ = id => document.getElementById(id);
 
@@ -1130,8 +1182,10 @@ function clearError(id) {
 function clearListeners() {
   if (productUnsubscribe) productUnsubscribe();
   if (salesUnsubscribe) salesUnsubscribe();
+  if (clientsUnsubscribe) clientsUnsubscribe();
   productUnsubscribe = null;
   salesUnsubscribe = null;
+  clientsUnsubscribe = null;
 }
 
 /* =========================
@@ -1439,6 +1493,7 @@ const triggerLogout = async () => {
   currentBusinessId = null;
   products = [];
   sales = [];
+  clients = [];
   businessList = [];
   userProfile = { displayName: "", photoURL: "", theme: "claro" };
   hide("app");
@@ -1501,6 +1556,15 @@ async function getLocalSales(bId) {
 
 async function saveLocalSales(bId, list) {
   localStorage.setItem(`stockea_local_sales_${bId}`, JSON.stringify(list));
+}
+
+async function getLocalClients(bId) {
+  const data = localStorage.getItem(`stockea_local_clients_${bId}`);
+  return data ? JSON.parse(data) : [];
+}
+
+async function saveLocalClients(bId, list) {
+  localStorage.setItem(`stockea_local_clients_${bId}`, JSON.stringify(list));
 }
 
 /* =========================
@@ -1657,6 +1721,7 @@ $("backHomeBtn").onclick = async () => {
   currentBusinessId = null;
   products = [];
   sales = [];
+  clients = [];
   try { await refreshBusinessList(); } catch (error) { console.error(error); }
   showHome();
 };
@@ -1671,13 +1736,14 @@ document.querySelectorAll("nav [data-page]").forEach(button => {
       item.classList.toggle("active", item === button);
     });
 
-    ["dashboard", "stock", "productFormPanel", "sales", "settings", "profile"].forEach(id => {
+    ["dashboard", "stock", "productFormPanel", "sales", "clients", "settings", "profile"].forEach(id => {
       $(id).classList.toggle("hidden", id !== page);
     });
 
     if (page === "dashboard") renderDashboard();
     if (page === "stock") renderProducts();
     if (page === "sales") renderSales();
+    if (page === "clients") renderClients();
     if (page === "settings") renderMembersList();
   });
 });
@@ -1686,7 +1752,7 @@ const openProfileView = () => {
   document.querySelectorAll("nav [data-page]").forEach(item => {
     item.classList.remove("active");
   });
-  ["dashboard", "stock", "productFormPanel", "sales", "settings", "profile"].forEach(id => {
+  ["dashboard", "stock", "productFormPanel", "sales", "clients", "settings", "profile"].forEach(id => {
     $(id).classList.toggle("hidden", id !== "profile");
   });
   loadProfileSection();
@@ -1859,6 +1925,7 @@ async function openBusiness(id) {
     currentBusiness = found;
     products = await getLocalProducts(id);
     sales = await getLocalSales(id);
+    clients = await getLocalClients(id);
 
     setupBusinessUI();
     return;
@@ -1880,6 +1947,7 @@ async function openBusiness(id) {
   currentBusiness = { id: snap.id, ...data };
   products = [];
   sales = [];
+  clients = [];
 
   setupBusinessUI();
   startBusinessListeners();
@@ -1924,7 +1992,7 @@ function setupBusinessUI() {
     button.classList.toggle("active", button.dataset.page === "dashboard");
   });
 
-  ["dashboard", "stock", "productFormPanel", "sales", "settings", "profile"].forEach(id => {
+  ["dashboard", "stock", "productFormPanel", "sales", "clients", "settings", "profile"].forEach(id => {
     $(id).classList.toggle("hidden", id !== "dashboard");
   });
 
@@ -2202,6 +2270,14 @@ function startBusinessListeners() {
       renderSales();
       renderDashboard();
     }, error => console.error("Error ventas:", error));
+
+  clientsUnsubscribe = db.collection("businesses")
+    .doc(currentBusinessId)
+    .collection("clients")
+    .onSnapshot(snapshot => {
+      clients = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      renderClients();
+    }, error => console.error("Error clientes:", error));
 }
 
 function getSaleTime(sale) {
@@ -2210,6 +2286,147 @@ function getSaleTime(sale) {
   }
   if (sale.createdAt instanceof Date) return sale.createdAt.getTime();
   return Number(sale.createdAt) || 0;
+}
+
+/* =========================
+   GESTIÓN DE CLIENTES Y CUENTAS CORRIENTES
+========================= */
+$("addClientBtn").onclick = () => {
+  $("clientForm").reset();
+  show("clientModal");
+};
+$("closeClientModalBtn").onclick = () => hide("clientModal");
+
+$("clientForm").addEventListener("submit", async event => {
+  event.preventDefault();
+  if (!currentBusinessId) return;
+
+  const name = $("cName").value.trim();
+  const phone = $("cPhone").value.trim();
+  const notes = $("cNotes").value.trim();
+
+  try {
+    const data = {
+      name, phone, notes,
+      debt: 0,
+      createdAt: Date.now()
+    };
+
+    if (appMode === "local") {
+      clients = await getLocalClients(currentBusinessId);
+      data.id = "cli_" + Date.now();
+      clients.push(data);
+      await saveLocalClients(currentBusinessId, clients);
+      hide("clientModal");
+      renderClients();
+    } else {
+      data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+      await db.collection("businesses").doc(currentBusinessId).collection("clients").add(data);
+      hide("clientModal");
+    }
+    alert("¡Cliente registrado exitosamente!");
+  } catch (error) {
+    console.error(error);
+    alert("No se pudo registrar el cliente.");
+  }
+});
+
+$("searchClient").addEventListener("input", renderClients);
+
+function renderClients() {
+  const container = $("clientsList");
+  if (!container) return;
+
+  const search = ($("searchClient")?.value || "").toLowerCase().trim();
+  const filtered = clients.filter(c => [c.name, c.phone].join(" ").toLowerCase().includes(search));
+
+  if (!filtered.length) {
+    container.innerHTML = '<div class="empty">No hay clientes encontrados.</div>';
+    return;
+  }
+
+  container.innerHTML = filtered.map(client => {
+    const debt = Number(client.debt) || 0;
+    const debtClass = debt > 0 ? "danger" : "green";
+    const debtLabel = debt > 0 ? `Debe: ${money(debt)}` : "Al día (Sin deuda)";
+
+    return `
+      <div class="sale" style="align-items:flex-start">
+        <div style="flex:1">
+          <b style="font-size:16px">${clean(client.name)}</b>
+          <p>📞 Teléfono: ${clean(client.phone)} ${client.notes ? `· Notas: ${clean(client.notes)}` : ''}</p>
+          <p class="${debtClass}" style="font-weight:bold; margin-top:4px">${debtLabel}</p>
+        </div>
+        <div class="sale-actions" style="margin-top:0">
+          ${debt > 0 ? `<button type="button" class="whatsapp-btn" data-pay-client="${client.id}" style="padding:7px 12px;font-size:12px">💵 Registrar Abono</button>` : ''}
+          <button type="button" class="danger" data-delete-client="${client.id}" style="padding:7px 10px;font-size:12px">Eliminar</button>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  container.querySelectorAll("[data-pay-client]").forEach(btn => {
+    btn.onclick = () => openPaymentModal(btn.dataset.payClient);
+  });
+  container.querySelectorAll("[data-delete-client]").forEach(btn => {
+    btn.onclick = () => deleteClient(btn.dataset.deleteClient);
+  });
+}
+
+function openPaymentModal(clientId) {
+  const client = clients.find(c => c.id === clientId);
+  if (!client) return;
+
+  $("paymentClientId").value = client.id;
+  setText("paymentClientInfo", `Cliente: ${client.name} (Deuda actual: ${money(client.debt)})`);
+  $("paymentAmount").value = "";
+  show("paymentModal");
+}
+$("closePaymentModalBtn").onclick = () => hide("paymentModal");
+
+$("paymentForm").addEventListener("submit", async event => {
+  event.preventDefault();
+  const clientId = $("paymentClientId").value;
+  const amount = Number($("paymentAmount").value);
+  const client = clients.find(c => c.id === clientId);
+
+  if (!client || amount <= 0) return;
+
+  try {
+    const newDebt = Math.max(0, (Number(client.debt) || 0) - amount);
+
+    if (appMode === "local") {
+      client.debt = newDebt;
+      await saveLocalClients(currentBusinessId, clients);
+      hide("paymentModal");
+      renderClients();
+    } else {
+      await db.collection("businesses").doc(currentBusinessId).collection("clients").doc(clientId).update({
+        debt: newDebt
+      });
+      hide("paymentModal");
+    }
+    alert("¡Pago registrado con éxito! Deuda actualizada.");
+  } catch (error) {
+    console.error(error);
+    alert("No se pudo registrar el pago.");
+  }
+});
+
+async function deleteClient(clientId) {
+  if (!confirm("¿Eliminar este cliente de la lista?")) return;
+  try {
+    if (appMode === "local") {
+      clients = clients.filter(c => c.id !== clientId);
+      await saveLocalClients(currentBusinessId, clients);
+      renderClients();
+    } else {
+      await db.collection("businesses").doc(currentBusinessId).collection("clients").doc(clientId).delete();
+    }
+  } catch (error) {
+    console.error(error);
+    alert("No se pudo eliminar el cliente.");
+  }
 }
 
 /* =========================
@@ -2513,16 +2730,39 @@ async function sellProduct(id) {
     return alert("Cantidad no válida.");
   }
 
-  const paymentMethodPrompt = prompt("Método de pago:\n1. Efectivo\n2. Transferencia / Mercado Pago\n3. Tarjeta\n4. Otro", "1");
+  const paymentMethodPrompt = prompt("Método de pago:\n1. Efectivo\n2. Transferencia / Mercado Pago\n3. Tarjeta\n4. Cuenta Corriente (Fiado)", "1");
   let paymentMethod = "Efectivo";
+  let selectedClientId = null;
+
   if (paymentMethodPrompt === "2") paymentMethod = "Transferencia / MP";
   else if (paymentMethodPrompt === "3") paymentMethod = "Tarjeta";
-  else if (paymentMethodPrompt === "4") paymentMethod = "Otro";
+  else if (paymentMethodPrompt === "4") {
+    paymentMethod = "Cuenta Corriente";
+    if (!clients.length) {
+      alert("No hay clientes registrados. Registrá un cliente primero en la sección Clientes.");
+      return;
+    }
+    const clientOptions = clients.map((c, idx) => `${idx + 1}. ${c.name}`).join("\n");
+    const clientChoice = prompt(`Seleccioná el número del cliente:\n${clientOptions}`, "1");
+    const clientIndex = Number(clientChoice) - 1;
+    if (!clients[clientIndex]) return alert("Cliente no válido.");
+    selectedClientId = clients[clientIndex].id;
+  }
+
+  const saleTotal = (product.price || 0) * quantity;
 
   try {
     if (appMode === "local") {
       product.quantity -= quantity;
       await saveLocalProducts(currentBusinessId, products);
+
+      if (selectedClientId) {
+        const client = clients.find(c => c.id === selectedClientId);
+        if (client) {
+          client.debt = (Number(client.debt) || 0) + saleTotal;
+          await saveLocalClients(currentBusinessId, clients);
+        }
+      }
 
       sales = await getLocalSales(currentBusinessId);
       const newSale = {
@@ -2533,9 +2773,10 @@ async function sellProduct(id) {
         quantity,
         unitPrice: product.price || 0,
         unitCost: product.cost || 0,
-        total: (product.price || 0) * quantity,
+        total: saleTotal,
         profit: ((product.price || 0) - (product.cost || 0)) * quantity,
         paymentMethod,
+        clientId: selectedClientId || null,
         createdAt: Date.now()
       };
       sales.unshift(newSale);
@@ -2550,6 +2791,7 @@ async function sellProduct(id) {
 
     const productRef = db.collection("businesses").doc(currentBusinessId).collection("products").doc(id);
     const saleRef = db.collection("businesses").doc(currentBusinessId).collection("sales").doc();
+    const clientRef = selectedClientId ? db.collection("businesses").doc(currentBusinessId).collection("clients").doc(selectedClientId) : null;
 
     await db.runTransaction(async transaction => {
       const snap = await transaction.get(productRef);
@@ -2564,6 +2806,14 @@ async function sellProduct(id) {
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       });
 
+      if (clientRef) {
+        const clientSnap = await transaction.get(clientRef);
+        if (clientSnap.exists) {
+          const currentDebt = Number(clientSnap.data().debt) || 0;
+          transaction.update(clientRef, { debt: currentDebt + saleTotal });
+        }
+      }
+
       const fullName = freshData.name + (freshData.model ? ` (${freshData.model})` : '');
 
       transaction.set(saleRef, {
@@ -2573,9 +2823,10 @@ async function sellProduct(id) {
         quantity,
         unitPrice: freshData.price || 0,
         unitCost: freshData.cost || 0,
-        total: (freshData.price || 0) * quantity,
+        total: saleTotal,
         profit: ((freshData.price || 0) - (freshData.cost || 0)) * quantity,
         paymentMethod,
+        clientId: selectedClientId || null,
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         soldBy: currentUser.uid
       });
@@ -2595,7 +2846,7 @@ async function cancelSale(saleId) {
   const sale = sales.find(s => s.id === saleId);
   if (!sale) return;
 
-  if (!confirm(`¿Anular la venta de ${sale.quantity} unidad(es) de "${sale.productName}"?\nEl producto regresará al stock.`)) return;
+  if (!confirm(`¿Anular la venta de ${sale.quantity} unidad(es) de "${sale.productName}"?\nEl producto regresará al stock y se ajustará la cuenta corriente si aplica.`)) return;
 
   try {
     if (appMode === "local") {
@@ -2606,18 +2857,29 @@ async function cancelSale(saleId) {
         await saveLocalProducts(currentBusinessId, products);
       }
 
+      if (sale.paymentMethod === "Cuenta Corriente" && sale.clientId) {
+        clients = await getLocalClients(currentBusinessId);
+        const client = clients.find(c => c.id === sale.clientId);
+        if (client) {
+          client.debt = Math.max(0, (Number(client.debt) || 0) - (Number(sale.total) || 0));
+          await saveLocalClients(currentBusinessId, clients);
+        }
+      }
+
       sales = sales.filter(s => s.id !== saleId);
       await saveLocalSales(currentBusinessId, sales);
 
       renderSales();
       renderProducts();
       renderDashboard();
+      renderClients();
       alert("Venta anulada y stock devuelto.");
       return;
     }
 
     const saleRef = db.collection("businesses").doc(currentBusinessId).collection("sales").doc(saleId);
     const productRef = sale.productId ? db.collection("businesses").doc(currentBusinessId).collection("products").doc(sale.productId) : null;
+    const clientRef = sale.clientId ? db.collection("businesses").doc(currentBusinessId).collection("clients").doc(sale.clientId) : null;
 
     await db.runTransaction(async transaction => {
       if (productRef) {
@@ -2628,6 +2890,13 @@ async function cancelSale(saleId) {
             quantity: currentQty + (Number(sale.quantity) || 0),
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
           });
+        }
+      }
+      if (clientRef && sale.paymentMethod === "Cuenta Corriente") {
+        const clientSnap = await transaction.get(clientRef);
+        if (clientSnap.exists) {
+          const currentDebt = Number(clientSnap.data().debt) || 0;
+          transaction.update(clientRef, { debt: Math.max(0, currentDebt - (Number(sale.total) || 0)) });
         }
       }
       transaction.delete(saleRef);
@@ -2713,14 +2982,14 @@ function renderDashboard() {
   const stockUnits = products.reduce((s, x) => s + (Number(x.quantity) || 0), 0);
   const stockValue = products.reduce((s, x) => s + (Number(x.cost) || 0) * (Number(x.quantity) || 0), 0);
 
-  let cashTotal = 0, transferTotal = 0, cardTotal = 0, otherTotal = 0;
+  let cashTotal = 0, transferTotal = 0, cardTotal = 0, fiadoTotal = 0;
   periodSales.forEach(s => {
     const amt = Number(s.total) || 0;
     const method = s.paymentMethod || "Efectivo";
     if (method === "Efectivo") cashTotal += amt;
     else if (method.includes("Transferencia")) transferTotal += amt;
     else if (method === "Tarjeta") cardTotal += amt;
-    else otherTotal += amt;
+    else if (method === "Cuenta Corriente") fiadoTotal += amt;
   });
 
   setText("statSales", money(totalSales));
@@ -2731,7 +3000,7 @@ function renderDashboard() {
   setText("statCash", money(cashTotal));
   setText("statTransfer", money(transferTotal));
   setText("statCard", money(cardTotal));
-  setText("statOther", money(otherTotal));
+  setText("statFiado", money(fiadoTotal));
 
   const soldByProduct = {};
   periodSales.forEach(sale => {
