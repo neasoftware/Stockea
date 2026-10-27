@@ -20,12 +20,46 @@
   --green:#35d49a;
   --red:#ff7184;
 }
+
+/* TEMAS PERSONALIZADOS */
+body.theme-verde {
+  --bg: #06110a;
+  --panel: #0e2b1b;
+  --line: rgba(110, 184, 143, 0.22);
+  --blue: #34d399;
+  --txt: #f0f7f3;
+  --muted: #a3c2b1;
+  --green: #6ee7b7;
+  --red: #ff7184;
+}
+body.theme-purpura {
+  --bg: #0f0a1c;
+  --panel: #1a1230;
+  --line: #322359;
+  --blue: #a855f7;
+  --txt: #f5f3ff;
+  --muted: #b3a5d0;
+  --green: #34d399;
+  --red: #f43f5e;
+}
+body.theme-oscuro {
+  --bg: #050505;
+  --panel: #121212;
+  --line: #262626;
+  --blue: #3b82f6;
+  --txt: #ffffff;
+  --muted: #a3a3a3;
+  --green: #22c55e;
+  --red: #ef4444;
+}
+
 * { box-sizing:border-box }
 body {
   margin:0;
   background:var(--bg);
   color:var(--txt);
   font:15px Arial,sans-serif;
+  transition: background .3s, color .3s;
 }
 button,input,select {
   font:inherit;
@@ -78,8 +112,8 @@ header {
   gap:10px;
 }
 .avatar-mini {
-  width:38px;
-  height:38px;
+  width:42px;
+  height:42px;
   border-radius:50%;
   background:#20375c;
   display:flex;
@@ -87,9 +121,13 @@ header {
   justify-content:center;
   font-weight:bold;
   overflow:hidden;
-  border:1px solid var(--blue);
+  border:2px solid var(--blue);
   flex-shrink:0;
   cursor:pointer;
+  transition: transform .2s;
+}
+.avatar-mini:hover {
+  transform: scale(1.05);
 }
 .avatar-mini img {
   width:100%;
@@ -295,6 +333,57 @@ h2 { font-size:20px }
   height:100%;
   object-fit:cover;
 }
+
+.theme-selector {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 15px;
+}
+.theme-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: #0c1426;
+  color: var(--txt);
+  cursor: pointer;
+  font-size: 13px;
+  justify-content: center;
+}
+.theme-btn.active {
+  border-color: var(--blue);
+  box-shadow: 0 0 10px rgba(86, 140, 255, 0.3);
+}
+
+/* TARJETA PRODUCTO ESTRELLA MEJORADA */
+.star-product-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 0;
+}
+.star-product-img {
+  width: 70px;
+  height: 70px;
+  border-radius: 12px;
+  background: #0c1426;
+  border: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  font-size: 30px;
+  flex-shrink: 0;
+}
+.star-product-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .cart-floating-btn {
   position:fixed;
   bottom:20px;
@@ -482,13 +571,6 @@ h2 { font-size:20px }
 }
 @media(max-width:650px) {
   header { padding:12px }
-  header #userEmailDisplay {
-    display:inline-block;
-    max-width:105px;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    vertical-align:middle;
-  }
   .layout { display:block }
   nav {
     width:100%;
@@ -521,8 +603,7 @@ h2 { font-size:20px }
 <header>
   <div class="logo">Stockeá<span>.</span></div>
   <div class="user-header-info">
-    <button id="headerLogout" class="secondary hidden" style="font-size:12px; padding:8px 10px;">🚪 Salir / Cambiar</button>
-    <span id="userEmailDisplay" class="muted" style="cursor:pointer;" title="Ir a mi perfil"></span>
+    <button id="headerLogout" class="secondary hidden" style="font-size:12px; padding:8px 10px;">🚪 Salir</button>
     <div id="headerAvatar" class="avatar-mini hidden" title="Ir a mi perfil">👤</div>
   </div>
 </header>
@@ -706,7 +787,7 @@ h2 { font-size:20px }
       </div>
 
       <div class="panel">
-        <h2>🏆 Producto estrella</h2>
+        <h2>🏆 Producto estrella (Más vendido)</h2>
         <div id="topProduct" class="empty">Todavía no hay ventas.</div>
       </div>
       <div class="panel"><h2>Últimas ventas</h2><div id="recentSales"></div></div>
@@ -805,10 +886,10 @@ h2 { font-size:20px }
       </div>
     </section>
 
-    <!-- SECCIÓN DE PERFIL -->
+    <!-- SECCIÓN DE PERFIL & CONFIGURACIÓN -->
     <section id="profile" class="hidden">
-      <h1>Mi perfil</h1>
-      <p class="sub">Personalizá tu nombre visible y foto de perfil.</p>
+      <h1>Mi perfil y configuración</h1>
+      <p class="sub">Personalizá tu cuenta, tu foto y el estilo visual de la aplicación.</p>
       
       <div class="panel profile-card">
         <div id="profileAvatar" class="avatar-large">👤</div>
@@ -829,8 +910,19 @@ h2 { font-size:20px }
             <label>Correo electrónico (solo lectura)</label>
             <input id="profileEmail" readonly style="opacity:0.6; cursor:not-allowed">
           </div>
-          <button type="submit" style="width:100%">Guardar perfil</button>
+          <button type="submit" style="width:100%; margin-bottom: 20px;">Guardar perfil</button>
         </form>
+
+        <div style="border-top: 1px solid var(--line); padding-top: 20px; text-align: left;">
+          <h3 style="margin: 0 0 5px; font-size: 16px;">🎨 Personalización de Tema</h3>
+          <p class="sub" style="font-size: 12px; margin-bottom: 12px;">Elegí los colores que más te gusten para la aplicación:</p>
+          <div class="theme-selector">
+            <button type="button" class="theme-btn" data-theme="defecto">🔵 Azul Noche</button>
+            <button type="button" class="theme-btn" data-theme="verde">🌿 Verde NEA</button>
+            <button type="button" class="theme-btn" data-theme="purpura">🟣 Púrpura Neón</button>
+            <button type="button" class="theme-btn" data-theme="oscuro">🖤 Oscuro OLED</button>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -918,6 +1010,29 @@ function clearListeners() {
   productUnsubscribe = null;
   salesUnsubscribe = null;
 }
+
+/* =========================
+   GESTIÓN DE TEMAS
+========================= */
+function applyTheme(themeName) {
+  document.body.className = "";
+  if (themeName && themeName !== "defecto") {
+    document.body.classList.add(`theme-${themeName}`);
+  }
+  localStorage.setItem("stockea_user_theme", themeName);
+
+  document.querySelectorAll(".theme-btn").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.theme === themeName);
+  });
+}
+
+document.querySelectorAll(".theme-btn").forEach(btn => {
+  btn.onclick = () => applyTheme(btn.dataset.theme);
+});
+
+// Cargar tema guardado
+const savedTheme = localStorage.getItem("stockea_user_theme") || "defecto";
+applyTheme(savedTheme);
 
 /* =========================
    VERIFICAR SI ES ENLACE PÚBLICO
@@ -1156,14 +1271,12 @@ $("btnCloudMode").onclick = () => {
   appMode = "cloud";
   hide("modeSelectScreen");
   show("authScreen");
-  setText("userEmailDisplay", "Modo Nube");
 };
 
 $("btnLocalMode").onclick = () => {
   appMode = "local";
   hide("modeSelectScreen");
   hide("authScreen");
-  setText("userEmailDisplay", "Modo Local");
   initLocalMode();
 };
 
@@ -1172,10 +1285,9 @@ $("backToModeSelect").onclick = () => {
   show("modeSelectScreen");
   hide("headerAvatar");
   hide("headerLogout");
-  setText("userEmailDisplay", "");
 };
 
-// Botón universal de Salir / Cambiar modo
+// Botón universal de Salir
 const triggerLogout = async () => {
   clearListeners();
   if (appMode === "cloud") {
@@ -1195,7 +1307,6 @@ const triggerLogout = async () => {
   hide("headerAvatar");
   hide("headerLogout");
   show("modeSelectScreen");
-  setText("userEmailDisplay", "");
 };
 
 $("headerLogout").onclick = triggerLogout;
@@ -1404,7 +1515,7 @@ $("backHomeBtn").onclick = async () => {
 };
 
 /* =========================
-   CAMBIO DE PANTALLAS (SIN PERFIL EN MENÚ)
+   CAMBIO DE PANTALLAS
 ========================= */
 document.querySelectorAll("nav [data-page]").forEach(button => {
   button.addEventListener("click", () => {
@@ -1424,7 +1535,7 @@ document.querySelectorAll("nav [data-page]").forEach(button => {
   });
 });
 
-// Al hacer clic en tu avatar o nombre arriba a la derecha, se abre la sección de perfil
+// Al hacer clic en tu avatar arriba a la derecha, se abre la sección de perfil
 const openProfileView = () => {
   document.querySelectorAll("nav [data-page]").forEach(item => {
     item.classList.remove("active");
@@ -1436,7 +1547,6 @@ const openProfileView = () => {
 };
 
 $("headerAvatar").onclick = openProfileView;
-$("userEmailDisplay").onclick = openProfileView;
 
 /* =========================
    CONFIGURACIÓN CREAR / UNIR
@@ -1668,12 +1778,9 @@ function setupBusinessUI() {
 }
 
 /* =========================
-   GESTIÓN DE PERFIL DE USUARIO
+   GESTIÓN DE PERFIL DE USUARIO (SOLO AVATAR EN CABECERA)
 ========================= */
 function updateUIProfile() {
-  const name = userProfile.displayName || (currentUser ? currentUser.email : "Modo Local");
-  setText("userEmailDisplay", name);
-
   const headerAvatar = $("headerAvatar");
   const profileAvatar = $("profileAvatar");
 
@@ -1744,7 +1851,7 @@ $("profileForm").addEventListener("submit", async event => {
 });
 
 /* =========================
-   OBTENER Y MOSTRAR MIEMBROS DEL NEGOCIO (NUBE)
+   OBTENER, MOSTRAR Y EXPULSAR MIEMBROS DEL NEGOCIO (NUBE)
 ========================= */
 async function renderMembersList() {
   if (appMode !== "cloud" || !currentBusiness) return;
@@ -1753,6 +1860,7 @@ async function renderMembersList() {
 
   const memberUids = currentBusiness.memberUids || [];
   const ownerUid = currentBusiness.ownerUid;
+  const isIModernOwner = currentUser?.uid === ownerUid;
 
   if (!memberUids.length) {
     container.innerHTML = '<div class="empty">No hay miembros vinculados.</div>';
@@ -1785,12 +1893,44 @@ async function renderMembersList() {
           <span style="flex:1; overflow:hidden; text-overflow:ellipsis">${clean(name)}</span>
           ${isOwner ? '<span class="member-badge">Creador</span>' : '<span class="member-badge" style="background:#293650;color:#95a3bd">Socio</span>'}
           ${isMe ? '<span class="member-badge" style="background:#1b4a3f;color:#35d49a">Vos</span>' : ''}
+          ${(isIModernOwner && !isOwner) ? `<button type="button" class="danger" data-kick-user="${m.uid}" style="padding:4px 8px;font-size:11px">🚫 Expulsar</button>` : ''}
         </div>
       `;
     }).join("");
+
+    container.querySelectorAll("[data-kick-user]").forEach(btn => {
+      btn.onclick = () => kickMember(btn.dataset.kickUser);
+    });
+
   } catch (error) {
     console.error("Error al obtener lista de miembros:", error);
     container.innerHTML = '<div class="empty">Error al cargar la lista de miembros.</div>';
+  }
+}
+
+async function kickMember(targetUid) {
+  if (!confirm("¿Seguro que querés expulsar a este socio del negocio? Ya no tendrá acceso en tiempo real.")) return;
+
+  try {
+    const businessRef = db.collection("businesses").doc(currentBusinessId);
+    const userRef = db.collection("users").doc(targetUid);
+
+    const batch = db.batch();
+    batch.update(businessRef, {
+      memberUids: firebase.firestore.FieldValue.arrayRemove(targetUid)
+    });
+    batch.update(userRef, {
+      businessIds: firebase.firestore.FieldValue.arrayRemove(currentBusinessId)
+    });
+
+    await batch.commit();
+
+    currentBusiness.memberUids = currentBusiness.memberUids.filter(id => id !== targetUid);
+    renderMembersList();
+    alert("El socio fue expulsado del negocio.");
+  } catch (error) {
+    console.error(error);
+    alert("Error al expulsar al miembro.");
   }
 }
 
@@ -1809,7 +1949,6 @@ auth.onAuthStateChanged(async user => {
       hide("headerAvatar");
       hide("headerLogout");
       showAuth();
-      setText("userEmailDisplay", "");
     }
     return;
   }
@@ -2356,16 +2495,31 @@ function renderDashboard() {
   sales.forEach(sale => {
     const id = sale.productId || sale.productName || "unknown";
     if (!soldByProduct[id]) {
-      soldByProduct[id] = { name: sale.productName || "Producto", quantity: 0, total: 0 };
+      soldByProduct[id] = { id: sale.productId, name: sale.productName || "Producto", quantity: 0, total: 0 };
     }
     soldByProduct[id].quantity += Number(sale.quantity) || 0;
     soldByProduct[id].total += Number(sale.total) || 0;
   });
 
-  const topProduct = Object.values(soldByProduct).sort((a, b) => b.quantity - a.quantity)[0];
-  $("topProduct").innerHTML = topProduct
-    ? `<b>${clean(topProduct.name)}</b><p>Unidades vendidas: ${topProduct.quantity}</p><p>Facturación acumulada: ${money(topProduct.total)}</p>`
-    : '<div class="empty">Todavía no hay ventas.</div>';
+  const topProductData = Object.values(soldByProduct).sort((a, b) => b.quantity - a.quantity)[0];
+  
+  if (topProductData) {
+    const matchedProduct = products.find(p => p.id === topProductData.id || p.name === topProductData.name);
+    const imgHTML = matchedProduct?.image ? `<img src="${matchedProduct.image}" alt="Foto">` : "📦";
+
+    $("topProduct").innerHTML = `
+      <div class="star-product-card">
+        <div class="star-product-img">${imgHTML}</div>
+        <div style="flex:1">
+          <h3 style="margin:0 0 4px; font-size: 18px;">${clean(topProductData.name)}</h3>
+          <p class="sub" style="margin:0; font-size:13px">🔥 <b>${topProductData.quantity}</b> unidades vendidas</p>
+          <p class="green" style="margin:2px 0 0; font-weight:bold; font-size:14px">Facturado: ${money(topProductData.total)}</p>
+        </div>
+      </div>
+    `;
+  } else {
+    $("topProduct").innerHTML = '<div class="empty">Todavía no hay ventas en este período.</div>';
+  }
 
   $("recentSales").innerHTML = sales.length
     ? sales.slice(0, 5).map(sale => {
