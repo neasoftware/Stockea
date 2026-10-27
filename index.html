@@ -38,7 +38,9 @@ button {
   padding:11px 14px;
   font-weight:bold;
   cursor:pointer;
+  transition: opacity .2s, background .2s;
 }
+button:hover { opacity:0.9 }
 button:disabled { opacity:.5; cursor:not-allowed }
 input,select {
   width:100%;
@@ -151,7 +153,7 @@ h2 { font-size:20px }
   grid-template-columns:repeat(2,minmax(0,1fr));
   gap:12px;
 }
-.card p { color:var(--muted); font-size:13px }
+.card p { color:var(--muted); font-size:13px; margin:0 0 6px }
 .card strong {
   font-size:23px;
   overflow-wrap:anywhere;
@@ -187,6 +189,8 @@ h2 { font-size:20px }
   font-size:12px;
   color:var(--muted);
   line-height:1.6;
+  text-align:center;
+  margin-top:25px;
 }
 
 /* HOME */
@@ -295,6 +299,7 @@ h2 { font-size:20px }
   line-height:1.35;
   overflow-wrap:anywhere;
   margin-bottom:8px;
+  font-weight:bold;
 }
 .product-color {
   display:flex;
@@ -357,10 +362,11 @@ h2 { font-size:20px }
   border-bottom:1px solid var(--line);
   flex-wrap:wrap;
 }
+.sale:last-child { border-bottom:0 }
 .sale p {
   color:var(--muted);
   font-size:13px;
-  margin:5px 0;
+  margin:5px 0 0;
 }
 
 @media(max-width:950px) {
@@ -439,7 +445,7 @@ h2 { font-size:20px }
     </div>
     <button id="authSubmitBtn" type="submit">Iniciar sesión</button>
   </form>
-  <p id="authError" class="hidden" style="color:var(--red)"></p>
+  <p id="authError" class="hidden" style="color:var(--red);margin-top:10px;text-align:center"></p>
 </div>
 
 <!-- HOME: LISTA DE NEGOCIOS -->
@@ -500,7 +506,7 @@ h2 { font-size:20px }
       </select>
     </div>
     <div class="field">
-      <label>Categorías separadas por comas</label>
+      <label>Categorías separadas por comas *</label>
       <input id="categories" required placeholder="Ej.: General, Accesorios">
     </div>
     <button type="submit" style="width:100%">Crear negocio</button>
@@ -514,7 +520,7 @@ h2 { font-size:20px }
     <button type="submit" style="width:100%">Unirse al negocio</button>
   </form>
 
-  <p id="setupError" class="hidden" style="color:var(--red)"></p>
+  <p id="setupError" class="hidden" style="color:var(--red);margin-top:10px;text-align:center"></p>
 </div>
 
 <!-- APLICACIÓN -->
@@ -612,7 +618,7 @@ h2 { font-size:20px }
       <div class="panel">
         <p><b>Código para compartir:</b></p>
         <div id="displayStoreCode" class="codebox">—</div>
-        <button id="copyStoreCode" class="secondary">Copiar código</button>
+        <button id="copyStoreCode" class="secondary" style="margin-top:10px">Copiar código</button>
 
         <form id="settingsForm" style="margin-top:20px">
           <div class="field"><label>Nombre del negocio</label><input id="editBiz" required></div>
@@ -636,8 +642,6 @@ h2 { font-size:20px }
     <p class="notice">Stockeá — Gestión compartida en la nube.</p>
   </main>
 </div>
-</body>
-</html>
 
 <script>
 /* =========================
@@ -674,14 +678,8 @@ let salesUnsubscribe = null;
 
 const $ = id => document.getElementById(id);
 
-function show(id) {
-  $(id)?.classList.remove("hidden");
-}
-
-function hide(id) {
-  $(id)?.classList.add("hidden");
-}
-
+function show(id) { $(id)?.classList.remove("hidden"); }
+function hide(id) { $(id)?.classList.add("hidden"); }
 function setText(id, value) {
   const element = $(id);
   if (element) element.textContent = value ?? "";
@@ -724,7 +722,6 @@ function clearError(id) {
 function clearListeners() {
   if (productUnsubscribe) productUnsubscribe();
   if (salesUnsubscribe) salesUnsubscribe();
-
   productUnsubscribe = null;
   salesUnsubscribe = null;
 }
@@ -744,15 +741,9 @@ $("tabRegister").onclick = () => setAuthMode("register");
 
 function setAuthMode(mode) {
   authMode = mode;
-
   $("tabLogin").classList.toggle("active", mode === "login");
   $("tabRegister").classList.toggle("active", mode === "register");
-
-  setText(
-    "authSubmitBtn",
-    mode === "login" ? "Iniciar sesión" : "Crear cuenta"
-  );
-
+  setText("authSubmitBtn", mode === "login" ? "Iniciar sesión" : "Crear cuenta");
   clearError("authError");
 }
 
@@ -762,7 +753,6 @@ $("authForm").addEventListener("submit", async event => {
 
   const email = $("authEmail").value.trim();
   const password = $("authPassword").value;
-
   $("authSubmitBtn").disabled = true;
 
   try {
@@ -789,7 +779,6 @@ function authErrorMessage(error) {
     "auth/too-many-requests": "Demasiados intentos. Probá más tarde.",
     "auth/network-request-failed": "No se pudo conectar. Revisá internet."
   };
-
   return messages[error.code] || error.message || "Ocurrió un error.";
 }
 
@@ -810,7 +799,7 @@ function renderBusinessList() {
 
   if (!businessList.length) {
     container.innerHTML = `
-      <div class="panel empty">
+      <div class="panel empty" style="grid-column:1/-1">
         <div style="font-size:38px">🏪</div>
         <h3>Todavía no tenés negocios</h3>
         <p>Creá uno nuevo o unite al negocio de otra persona.</p>
@@ -823,7 +812,7 @@ function renderBusinessList() {
       <div class="business-icon">🏪</div>
       <h3>${clean(business.name || "Mi negocio")}</h3>
       <p>${clean(business.type || "Negocio")}</p>
-      <button type="button" data-open-business="${clean(business.id)}">
+      <button type="button" data-open-business="${business.id}">
         Entrar al negocio →
       </button>
     </article>
@@ -832,7 +821,6 @@ function renderBusinessList() {
   container.querySelectorAll("[data-open-business]").forEach(button => {
     button.onclick = async () => {
       button.disabled = true;
-
       try {
         await openBusiness(button.dataset.openBusiness);
       } catch (error) {
@@ -851,15 +839,11 @@ async function refreshBusinessList() {
   const userRef = db.collection("users").doc(currentUser.uid);
   const userSnap = await userRef.get();
 
-  const ids = userSnap.exists
-    ? (userSnap.data().businessIds || [])
-    : [];
-
+  const ids = userSnap.exists ? (userSnap.data().businessIds || []) : [];
   businessList = [];
 
   for (const id of ids) {
     const snap = await db.collection("businesses").doc(id).get();
-
     if (!snap.exists) continue;
 
     const data = snap.data();
@@ -885,30 +869,17 @@ $("homeJoinBtn").onclick = () => {
 
 $("backSetupHome").onclick = async () => {
   clearError("setupError");
-
-  try {
-    await refreshBusinessList();
-  } catch (error) {
-    console.error(error);
-  }
-
+  try { await refreshBusinessList(); } catch (error) { console.error(error); }
   showHome();
 };
 
 $("backHomeBtn").onclick = async () => {
   clearListeners();
-
   currentBusiness = null;
   currentBusinessId = null;
   products = [];
   sales = [];
-
-  try {
-    await refreshBusinessList();
-  } catch (error) {
-    console.error(error);
-  }
-
+  try { await refreshBusinessList(); } catch (error) { console.error(error); }
   showHome();
 };
 
@@ -918,7 +889,6 @@ $("backHomeBtn").onclick = async () => {
 document.querySelectorAll("nav [data-page]").forEach(button => {
   button.addEventListener("click", () => {
     const page = button.dataset.page;
-
     document.querySelectorAll("nav [data-page]").forEach(item => {
       item.classList.toggle("active", item === button);
     });
@@ -941,13 +911,10 @@ $("tabJoinBiz").onclick = () => setBusinessMode("join");
 
 function setBusinessMode(mode) {
   const create = mode === "create";
-
   $("tabCreateBiz").classList.toggle("active", create);
   $("tabJoinBiz").classList.toggle("active", !create);
-
   $("createBizForm").classList.toggle("hidden", !create);
   $("joinBizForm").classList.toggle("hidden", create);
-
   clearError("setupError");
 }
 
@@ -966,10 +933,7 @@ $("createBizForm").addEventListener("submit", async event => {
   const name = $("bizName").value.trim();
   const owners = $("owners").value.trim();
   const type = $("businessType").value;
-  const categories = $("categories").value
-    .split(",")
-    .map(value => value.trim())
-    .filter(Boolean);
+  const categories = $("categories").value.split(",").map(v => v.trim()).filter(Boolean);
 
   if (!name || !owners || !categories.length) {
     showError("setupError", "Completá los campos obligatorios.");
@@ -981,23 +945,11 @@ $("createBizForm").addEventListener("submit", async event => {
 
   try {
     const userRef = db.collection("users").doc(currentUser.uid);
-    const userSnap = await userRef.get();
-
-    if (!userSnap.exists) {
-      await userRef.set({
-        email: currentUser.email || "",
-        businessIds: []
-      });
-    }
-
     const code = randomCode();
     const businessRef = db.collection("businesses").doc();
 
     const businessData = {
-      name,
-      owners,
-      type,
-      categories,
+      name, owners, type, categories,
       accessCode: code,
       ownerUid: currentUser.uid,
       memberUids: [currentUser.uid],
@@ -1005,9 +957,7 @@ $("createBizForm").addEventListener("submit", async event => {
     };
 
     const batch = db.batch();
-
     batch.set(businessRef, businessData);
-
     batch.set(userRef, {
       email: currentUser.email || "",
       businessIds: firebase.firestore.FieldValue.arrayUnion(businessRef.id)
@@ -1022,15 +972,11 @@ $("createBizForm").addEventListener("submit", async event => {
 
     await refreshBusinessList();
     showHome();
-
     alert("¡Negocio creado! Ya aparece en tu Home.");
     $("createBizForm").reset();
   } catch (error) {
     console.error(error);
-    showError(
-      "setupError",
-      "No se pudo crear el negocio. Revisá las reglas de Firestore y la conexión."
-    );
+    showError("setupError", "No se pudo crear el negocio. Revisá las reglas de Firestore.");
   } finally {
     button.disabled = false;
   }
@@ -1049,7 +995,6 @@ $("joinBizForm").addEventListener("submit", async event => {
   }
 
   const code = $("joinCode").value.trim().toUpperCase();
-
   if (!code) {
     showError("setupError", "Ingresá el código de acceso.");
     return;
@@ -1059,37 +1004,21 @@ $("joinBizForm").addEventListener("submit", async event => {
   button.disabled = true;
 
   try {
-    const invitationSnap = await db
-      .collection("invitaciones")
-      .doc(code)
-      .get();
+    const invitationSnap = await db.collection("invitaciones").doc(code).get();
 
-    if (!invitationSnap.exists) {
-      throw new Error("El código no existe o ya no es válido.");
-    }
-
+    if (!invitationSnap.exists) throw new Error("El código no existe o ya no es válido.");
     const businessId = invitationSnap.data().businessId;
-
-    if (!businessId) {
-      throw new Error("La invitación no tiene un negocio asociado.");
-    }
 
     const businessRef = db.collection("businesses").doc(businessId);
     const businessSnap = await businessRef.get();
-
-    if (!businessSnap.exists) {
-      throw new Error("No se encontró el negocio.");
-    }
+    if (!businessSnap.exists) throw new Error("No se encontró el negocio.");
 
     const userRef = db.collection("users").doc(currentUser.uid);
-    const userSnap = await userRef.get();
 
     const batch = db.batch();
-
     batch.update(businessRef, {
       memberUids: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
     });
-
     batch.set(userRef, {
       email: currentUser.email || "",
       businessIds: firebase.firestore.FieldValue.arrayUnion(businessId)
@@ -1099,15 +1028,11 @@ $("joinBizForm").addEventListener("submit", async event => {
 
     await refreshBusinessList();
     showHome();
-
     $("joinBizForm").reset();
     alert("¡Te uniste al negocio! Ya aparece en tu Home.");
   } catch (error) {
     console.error(error);
-    showError(
-      "setupError",
-      error.message || "No se pudo unir al negocio. Revisá el código y las reglas de Firebase."
-    );
+    showError("setupError", error.message || "No se pudo unir al negocio.");
   } finally {
     button.disabled = false;
   }
@@ -1118,18 +1043,14 @@ $("joinBizForm").addEventListener("submit", async event => {
 ========================= */
 async function openBusiness(id) {
   if (!currentUser) throw new Error("Iniciá sesión primero.");
-
   clearListeners();
 
   const businessRef = db.collection("businesses").doc(id);
   const snap = await businessRef.get();
 
-  if (!snap.exists) {
-    throw new Error("El negocio ya no existe.");
-  }
+  if (!snap.exists) throw new Error("El negocio ya no existe.");
 
   const data = snap.data();
-
   if (!(data.memberUids || []).includes(currentUser.uid)) {
     throw new Error("No tenés acceso a este negocio.");
   }
@@ -1169,7 +1090,6 @@ async function openBusiness(id) {
 
 /* =========================
    CARGA AUTOMÁTICA DE CUENTA
-   IMPORTANTE: SIEMPRE ABRE HOME
 ========================= */
 auth.onAuthStateChanged(async user => {
   currentUser = user;
@@ -1185,7 +1105,6 @@ auth.onAuthStateChanged(async user => {
     products = [];
     sales = [];
     businessList = [];
-
     showAuth();
     hide("headerLogout");
     setText("userEmailDisplay", "");
@@ -1201,12 +1120,7 @@ auth.onAuthStateChanged(async user => {
     let userSnap = await userRef.get();
 
     if (!userSnap.exists) {
-      await userRef.set({
-        email: user.email || "",
-        businessIds: []
-      }, { merge: true });
-
-      userSnap = await userRef.get();
+      await userRef.set({ email: user.email || "", businessIds: [] }, { merge: true });
     }
 
     await refreshBusinessList();
@@ -1214,98 +1128,57 @@ auth.onAuthStateChanged(async user => {
   } catch (error) {
     console.error(error);
     showHome();
-
-    $("businessList").innerHTML = `
-      <div class="panel empty">
-        No se pudieron cargar los negocios.
-        Revisá tu conexión y las reglas de Firebase.
-      </div>`;
   }
 });
 
-/* =========================
-   CERRAR SESIÓN
-========================= */
 $("headerLogout").onclick = async () => {
   clearListeners();
-
-  try {
-    await auth.signOut();
-  } catch (error) {
-    alert("No se pudo cerrar la sesión.");
-    console.error(error);
-  }
+  try { await auth.signOut(); } catch (error) { console.error(error); }
 };
-</script>
-</body>
-</html>
 
-<script>
 /* =========================
-   ESCUCHAR CAMBIOS DE FIREBASE
+   ESCUCHAR CAMBIOS EN TIEMPO REAL
 ========================= */
 function startBusinessListeners() {
   if (!currentBusinessId) return;
-
   clearListeners();
 
-  productUnsubscribe = db
-    .collection("businesses")
+  productUnsubscribe = db.collection("businesses")
     .doc(currentBusinessId)
     .collection("products")
     .onSnapshot(snapshot => {
-      products = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-
+      products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       fillCategoryOptions();
       renderProducts();
       renderDashboard();
-    }, error => {
-      console.error("Error cargando productos:", error);
-    });
+    }, error => console.error("Error productos:", error));
 
-  salesUnsubscribe = db
-    .collection("businesses")
+  salesUnsubscribe = db.collection("businesses")
     .doc(currentBusinessId)
     .collection("sales")
     .onSnapshot(snapshot => {
-      sales = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-
+      sales = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       sales.sort((a, b) => getSaleTime(b) - getSaleTime(a));
-
       renderSales();
       renderDashboard();
-    }, error => {
-      console.error("Error cargando ventas:", error);
-    });
+    }, error => console.error("Error ventas:", error));
 }
 
 function getSaleTime(sale) {
   if (sale.createdAt && typeof sale.createdAt.toMillis === "function") {
     return sale.createdAt.toMillis();
   }
-
-  if (sale.createdAt instanceof Date) {
-    return sale.createdAt.getTime();
-  }
-
+  if (sale.createdAt instanceof Date) return sale.createdAt.getTime();
   return Number(sale.createdAt) || 0;
 }
 
 /* =========================
-   CATEGORÍAS
+   CATEGORÍAS Y PRODUCTOS
 ========================= */
 function getCategories() {
   const categories = currentBusiness?.categories || [];
   const productCategories = products.map(product => product.category || "");
-  return [...new Set([...categories, ...productCategories])]
-    .map(value => String(value).trim())
-    .filter(Boolean);
+  return [...new Set([...categories, ...productCategories])].map(v => String(v).trim()).filter(Boolean);
 }
 
 function fillCategoryOptions() {
@@ -1315,36 +1188,22 @@ function fillCategoryOptions() {
 
   if (!categorySelect || !filterSelect) return;
 
-  const previousProductCategory = categorySelect.value;
-  const previousFilter = filterSelect.value;
+  const prevCat = categorySelect.value;
+  const prevFilt = filterSelect.value;
 
   categorySelect.innerHTML = categories.length
-    ? categories.map(category =>
-        `<option value="${clean(category)}">${clean(category)}</option>`
-      ).join("")
+    ? categories.map(c => `<option value="${clean(c)}">${clean(c)}</option>`).join("")
     : '<option value="General">General</option>';
 
-  filterSelect.innerHTML =
-    '<option value="">Todas las categorías</option>' +
-    categories.map(category =>
-      `<option value="${clean(category)}">${clean(category)}</option>`
-    ).join("");
+  filterSelect.innerHTML = '<option value="">Todas las categorías</option>' +
+    categories.map(c => `<option value="${clean(c)}">${clean(c)}</option>`).join("");
 
-  if (categories.includes(previousProductCategory)) {
-    categorySelect.value = previousProductCategory;
-  }
-
-  if (categories.includes(previousFilter)) {
-    filterSelect.value = previousFilter;
-  }
+  if (categories.includes(prevCat)) categorySelect.value = prevCat;
+  if (categories.includes(prevFilt)) filterSelect.value = prevFilt;
 }
 
-/* =========================
-   FORMULARIO DE PRODUCTOS
-========================= */
 $("addProductBtn").onclick = () => {
   if (!currentBusinessId) return;
-
   editingProductId = null;
   $("productForm").reset();
   $("pColorCode").value = "#568cff";
@@ -1373,21 +1232,11 @@ $("pImageFile").addEventListener("change", async event => {
     return;
   }
 
-  if (file.size > 8 * 1024 * 1024) {
-    alert("La imagen no puede superar los 8 MB.");
-    event.target.value = "";
-    return;
-  }
-
   try {
     $("imagePreview").textContent = "Procesando imagen...";
     const imageData = await compressImage(file);
-
     $("pImage").value = imageData;
-    $("imagePreview").innerHTML =
-      `<img alt="Vista previa" src="${imageData}"
-        style="display:block;max-width:160px;max-height:160px;
-        object-fit:contain;margin-top:10px;border-radius:10px">`;
+    $("imagePreview").innerHTML = `<img alt="Vista previa" src="${imageData}" style="display:block;max-width:160px;max-height:160px;object-fit:contain;margin-top:10px;border-radius:10px">`;
   } catch (error) {
     console.error(error);
     $("imagePreview").textContent = "";
@@ -1398,34 +1247,22 @@ $("pImageFile").addEventListener("change", async event => {
 function compressImage(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-
-    reader.onerror = () => reject(new Error("No se pudo leer la imagen."));
-
+    reader.onerror = () => reject(new Error("Error leyendo el archivo"));
     reader.onload = () => {
       const image = new Image();
-
-      image.onerror = () => reject(new Error("La imagen no es válida."));
-
+      image.onerror = () => reject(new Error("Imagen inválida"));
       image.onload = () => {
         const maxSize = 700;
-        const scale = Math.min(
-          1,
-          maxSize / Math.max(image.width, image.height)
-        );
-
+        const scale = Math.min(1, maxSize / Math.max(image.width, image.height));
         const canvas = document.createElement("canvas");
         canvas.width = Math.max(1, Math.round(image.width * scale));
         canvas.height = Math.max(1, Math.round(image.height * scale));
-
-        const context = canvas.getContext("2d");
-        context.drawImage(image, 0, 0, canvas.width, canvas.height);
-
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
         resolve(canvas.toDataURL("image/jpeg", 0.75));
       };
-
       image.src = reader.result;
     };
-
     reader.readAsDataURL(file);
   });
 }
@@ -1433,10 +1270,7 @@ function compressImage(file) {
 $("productForm").addEventListener("submit", async event => {
   event.preventDefault();
 
-  if (!currentBusinessId || !currentUser) {
-    alert("Primero entrá a un negocio.");
-    return;
-  }
+  if (!currentBusinessId || !currentUser) return;
 
   const name = $("pName").value.trim();
   const category = $("pCategory").value || "General";
@@ -1448,38 +1282,13 @@ $("productForm").addEventListener("submit", async event => {
   const code = $("pCode").value.trim();
   const image = $("pImage").value || "";
 
-  if (!name) {
-    alert("Ingresá el nombre del producto.");
-    return;
-  }
-
-  if (
-    !Number.isFinite(cost) || cost < 0 ||
-    !Number.isFinite(price) || price <= 0 ||
-    !Number.isInteger(quantity) || quantity < 0
-  ) {
-    alert("Revisá el costo, el precio y la cantidad.");
-    return;
-  }
-
   const submitButton = $("productForm").querySelector('button[type="submit"]');
   submitButton.disabled = true;
 
   try {
-    const collection = db.collection("businesses")
-      .doc(currentBusinessId)
-      .collection("products");
-
+    const collection = db.collection("businesses").doc(currentBusinessId).collection("products");
     const data = {
-      name,
-      category,
-      color,
-      colorCode,
-      cost,
-      price,
-      quantity,
-      code,
-      image,
+      name, category, color, colorCode, cost, price, quantity, code, image,
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     };
 
@@ -1496,15 +1305,12 @@ $("productForm").addEventListener("submit", async event => {
     $("imagePreview").innerHTML = "";
   } catch (error) {
     console.error(error);
-    alert("No se pudo guardar el producto. Revisá las reglas de Firestore.");
+    alert("No se pudo guardar el producto.");
   } finally {
     submitButton.disabled = false;
   }
 });
 
-/* =========================
-   MOSTRAR Y FILTRAR PRODUCTOS
-========================= */
 $("search").addEventListener("input", renderProducts);
 $("filterCategory").addEventListener("change", renderProducts);
 
@@ -1516,104 +1322,59 @@ function renderProducts() {
   const category = $("filterCategory")?.value || "";
 
   const filtered = products.filter(product => {
-    const searchable = [
-      product.name,
-      product.color,
-      product.code,
-      product.category
-    ].join(" ").toLowerCase();
-
-    return searchable.includes(search) &&
-      (!category || product.category === category);
+    const searchable = [product.name, product.color, product.code, product.category].join(" ").toLowerCase();
+    return searchable.includes(search) && (!category || product.category === category);
   });
 
   if (!filtered.length) {
-    container.innerHTML = `
-      <div class="panel empty">
-        ${products.length
-          ? "No se encontraron productos con esos filtros."
-          : "Todavía no hay productos. Tocá «Agregar producto» para comenzar."}
-      </div>`;
+    container.innerHTML = `<div class="panel empty" style="grid-column:1/-1">No se encontraron productos.</div>`;
     return;
   }
 
   container.innerHTML = filtered.map(product => {
     const quantity = Number(product.quantity) || 0;
-    const stockClass = quantity <= 0
-      ? "out"
-      : quantity <= 3 ? "low" : "";
-
-    const stockLabel = quantity <= 0
-      ? "Sin stock"
-      : quantity <= 3 ? "Stock bajo" : "Disponible";
+    const stockClass = quantity <= 0 ? "out" : quantity <= 3 ? "low" : "";
+    const stockLabel = quantity <= 0 ? "Sin stock" : quantity <= 3 ? "Stock bajo" : "Disponible";
 
     return `
       <article class="product-card">
         <div class="product-image">
-          ${product.image
-            ? `<img src="${product.image}" alt="${clean(product.name)}">`
-            : '<div class="product-placeholder">📦</div>'}
+          ${product.image ? `<img src="${product.image}" alt="${clean(product.name)}">` : '<div class="product-placeholder">📦</div>'}
         </div>
-
         <div class="product-card-body">
           <div class="product-category">${clean(product.category || "General")}</div>
           <div class="product-name">${clean(product.name || "Producto")}</div>
-
           ${product.color ? `
             <div class="product-color">
-              <span class="product-color-dot"
-                style="background:${/^#[0-9a-f]{6}$/i.test(product.colorCode || "")
-                  ? product.colorCode
-                  : "#568cff"}"></span>
+              <span class="product-color-dot" style="background:${product.colorCode || "#568cff"}"></span>
               ${clean(product.color)}
             </div>` : ""}
-
           <div class="product-price">${money(product.price)}</div>
           <div class="product-cost">Costo: ${money(product.cost)}</div>
-
           <div class="product-stock">
             <span>Cantidad: <b>${quantity}</b></span>
             <span class="stock-status ${stockClass}">${stockLabel}</span>
           </div>
-
-          ${product.code
-            ? `<p style="margin-bottom:0">Código: ${clean(product.code)}</p>`
-            : ""}
+          ${product.code ? `<p style="margin:6px 0 0;font-size:11px" class="muted">Cód: ${clean(product.code)}</p>` : ""}
         </div>
-
         <div class="product-actions">
-          <button type="button" data-sell="${clean(product.id)}"
-            ${quantity <= 0 ? "disabled" : ""}>Vender</button>
-          <button type="button" class="secondary"
-            data-edit="${clean(product.id)}">Editar</button>
-          <button type="button" class="danger"
-            data-delete="${clean(product.id)}">Eliminar</button>
+          <button type="button" data-sell="${product.id}" ${quantity <= 0 ? "disabled" : ""}>Vender</button>
+          <button type="button" class="secondary" data-edit="${product.id}">Editar</button>
+          <button type="button" class="danger" data-delete="${product.id}">Eliminar</button>
         </div>
       </article>`;
   }).join("");
 
-  container.querySelectorAll("[data-sell]").forEach(button => {
-    button.onclick = () => sellProduct(button.dataset.sell);
-  });
-
-  container.querySelectorAll("[data-edit]").forEach(button => {
-    button.onclick = () => editProduct(button.dataset.edit);
-  });
-
-  container.querySelectorAll("[data-delete]").forEach(button => {
-    button.onclick = () => deleteProduct(button.dataset.delete);
-  });
+  container.querySelectorAll("[data-sell]").forEach(btn => btn.onclick = () => sellProduct(btn.dataset.sell));
+  container.querySelectorAll("[data-edit]").forEach(btn => btn.onclick = () => editProduct(btn.dataset.edit));
+  container.querySelectorAll("[data-delete]").forEach(btn => btn.onclick = () => deleteProduct(btn.dataset.delete));
 }
 
-/* =========================
-   EDITAR PRODUCTO
-========================= */
 function editProduct(id) {
   const product = products.find(item => item.id === id);
   if (!product) return;
 
   editingProductId = id;
-
   fillCategoryOptions();
 
   $("pName").value = product.name || "";
@@ -1625,136 +1386,77 @@ function editProduct(id) {
   $("pQty").value = Number(product.quantity) || 0;
   $("pCode").value = product.code || "";
   $("pImage").value = product.image || "";
-  $("pImageFile").value = "";
 
-  $("imagePreview").innerHTML = product.image
-    ? `<img alt="Vista previa" src="${product.image}"
-        style="display:block;max-width:160px;max-height:160px;
-        object-fit:contain;margin-top:10px;border-radius:10px">`
-    : "";
-
+  $("imagePreview").innerHTML = product.image ? `<img src="${product.image}" style="max-width:160px;max-height:160px;object-fit:contain;margin-top:10px;border-radius:10px">` : "";
   setText("formTitle", "Editar producto");
   show("productFormPanel");
-
-  $("productFormPanel").scrollIntoView({
-    behavior: "smooth",
-    block: "start"
-  });
+  $("productFormPanel").scrollIntoView({ behavior: "smooth" });
 }
 
-/* =========================
-   ELIMINAR PRODUCTO
-========================= */
 async function deleteProduct(id) {
   const product = products.find(item => item.id === id);
-  if (!product) return;
-
-  if (!confirm(`¿Eliminar "${product.name}" del stock?`)) return;
+  if (!product || !confirm(`¿Eliminar "${product.name}" del stock?`)) return;
 
   try {
-    await db.collection("businesses")
-      .doc(currentBusinessId)
-      .collection("products")
-      .doc(id)
-      .delete();
+    await db.collection("businesses").doc(currentBusinessId).collection("products").doc(id).delete();
   } catch (error) {
     console.error(error);
     alert("No se pudo eliminar el producto.");
   }
 }
 
-/* =========================
-   REGISTRAR VENTA
-========================= */
 async function sellProduct(id) {
   const product = products.find(item => item.id === id);
   if (!product) return;
 
   const available = Number(product.quantity) || 0;
+  if (available <= 0) return alert("Este producto no tiene stock.");
 
-  if (available <= 0) {
-    alert("Este producto no tiene stock disponible.");
-    return;
-  }
-
-  const answer = prompt(
-    `Producto: ${product.name}\n` +
-    `Precio unitario: ${money(product.price)}\n` +
-    `Disponibles: ${available}\n\n` +
-    `¿Cuántas unidades vendiste?`,
-    "1"
-  );
-
-  if (answer === null) return;
+  const answer = prompt(`Vender: ${product.name}\nDisponibles: ${available}\n\n¿Cuántas unidades vendiste?`, "1");
+  if (!answer) return;
 
   const quantity = Number(answer);
-
-  if (!Number.isInteger(quantity) || quantity < 1) {
-    alert("Ingresá una cantidad entera mayor que cero.");
-    return;
-  }
-
-  if (quantity > available) {
-    alert("No hay suficientes unidades en stock.");
-    return;
+  if (!Number.isInteger(quantity) || quantity < 1 || quantity > available) {
+    return alert("Cantidad no válida.");
   }
 
   try {
-    const productRef = db.collection("businesses")
-      .doc(currentBusinessId)
-      .collection("products")
-      .doc(id);
-
-    const saleRef = db.collection("businesses")
-      .doc(currentBusinessId)
-      .collection("sales")
-      .doc();
+    const productRef = db.collection("businesses").doc(currentBusinessId).collection("products").doc(id);
+    const saleRef = db.collection("businesses").doc(currentBusinessId).collection("sales").doc();
 
     await db.runTransaction(async transaction => {
-      const productSnap = await transaction.get(productRef);
+      const snap = await transaction.get(productRef);
+      if (!snap.exists) throw new Error("Producto no encontrado.");
 
-      if (!productSnap.exists) {
-        throw new Error("El producto ya no existe.");
-      }
-
-      const freshProduct = productSnap.data();
-      const freshQuantity = Number(freshProduct.quantity) || 0;
-
-      if (freshQuantity < quantity) {
-        throw new Error("El stock cambió. No hay suficientes unidades.");
-      }
-
-      const price = Number(freshProduct.price) || 0;
-      const cost = Number(freshProduct.cost) || 0;
+      const freshData = snap.data();
+      const freshQty = Number(freshData.quantity) || 0;
+      if (freshQty < quantity) throw new Error("Stock insuficiente.");
 
       transaction.update(productRef, {
-        quantity: freshQuantity - quantity,
+        quantity: freshQty - quantity,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       });
 
       transaction.set(saleRef, {
         productId: id,
-        productName: freshProduct.name || "Producto",
+        productName: freshData.name || "Producto",
         quantity,
-        unitPrice: price,
-        unitCost: cost,
-        total: price * quantity,
-        profit: (price - cost) * quantity,
+        unitPrice: freshData.price || 0,
+        unitCost: freshData.cost || 0,
+        total: (freshData.price || 0) * quantity,
+        profit: ((freshData.price || 0) - (freshData.cost || 0)) * quantity,
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         soldBy: currentUser.uid
       });
     });
 
-    alert("¡Venta registrada correctamente!");
+    alert("¡Venta registrada!");
   } catch (error) {
     console.error(error);
-    alert(error.message || "No se pudo registrar la venta.");
+    alert(error.message || "Error al registrar la venta.");
   }
 }
 
-/* =========================
-   HISTORIAL DE VENTAS
-========================= */
 function renderSales() {
   const container = $("allSales");
   if (!container) return;
@@ -1766,9 +1468,7 @@ function renderSales() {
 
   container.innerHTML = sales.map(sale => {
     const date = getSaleTime(sale);
-    const dateText = date
-      ? new Date(date).toLocaleString("es-AR")
-      : "Fecha pendiente";
+    const dateText = date ? new Date(date).toLocaleString("es-AR") : "Fecha pendiente";
 
     return `
       <div class="sale">
@@ -1784,9 +1484,6 @@ function renderSales() {
   }).join("");
 }
 
-/* =========================
-   RESUMEN Y FINANZAS
-========================= */
 $("periodFilter").addEventListener("change", renderDashboard);
 
 function getPeriodStart(period) {
@@ -1797,20 +1494,17 @@ function getPeriodStart(period) {
     start.setHours(0, 0, 0, 0);
     return start.getTime();
   }
-
   if (period === "week") {
     const day = (start.getDay() + 6) % 7;
     start.setDate(start.getDate() - day);
     start.setHours(0, 0, 0, 0);
     return start.getTime();
   }
-
   if (period === "month") {
     start.setDate(1);
     start.setHours(0, 0, 0, 0);
     return start.getTime();
   }
-
   return 0;
 }
 
@@ -1820,70 +1514,36 @@ function renderDashboard() {
   const period = $("periodFilter")?.value || "month";
   const startTime = getPeriodStart(period);
 
-  const periodSales = sales.filter(sale => {
-    const time = getSaleTime(sale);
-    return time >= startTime && time > 0;
-  });
-
-  const totalSales = periodSales.reduce(
-    (sum, sale) => sum + (Number(sale.total) || 0), 0
-  );
-
-  const totalProfit = periodSales.reduce(
-    (sum, sale) => sum + (Number(sale.profit) || 0), 0
-  );
-
-  const stockUnits = products.reduce(
-    (sum, product) => sum + (Number(product.quantity) || 0), 0
-  );
-
-  const stockValue = products.reduce(
-    (sum, product) =>
-      sum + (Number(product.cost) || 0) *
-      (Number(product.quantity) || 0),
-    0
-  );
+  const periodSales = sales.filter(sale => getSaleTime(sale) >= startTime);
+  const totalSales = periodSales.reduce((s, x) => s + (Number(x.total) || 0), 0);
+  const totalProfit = periodSales.reduce((s, x) => s + (Number(x.profit) || 0), 0);
+  const stockUnits = products.reduce((s, x) => s + (Number(x.quantity) || 0), 0);
+  const stockValue = products.reduce((s, x) => s + (Number(x.cost) || 0) * (Number(x.quantity) || 0), 0);
 
   setText("statSales", money(totalSales));
   setText("statProfit", money(totalProfit));
   setText("statStock", stockUnits);
   setText("statValue", money(stockValue));
 
-  /* Producto más vendido */
   const soldByProduct = {};
-
   sales.forEach(sale => {
     const id = sale.productId || sale.productName || "unknown";
-
     if (!soldByProduct[id]) {
-      soldByProduct[id] = {
-        name: sale.productName || "Producto",
-        quantity: 0,
-        total: 0
-      };
+      soldByProduct[id] = { name: sale.productName || "Producto", quantity: 0, total: 0 };
     }
-
     soldByProduct[id].quantity += Number(sale.quantity) || 0;
     soldByProduct[id].total += Number(sale.total) || 0;
   });
 
-  const topProduct = Object.values(soldByProduct)
-    .sort((a, b) => b.quantity - a.quantity)[0];
-
+  const topProduct = Object.values(soldByProduct).sort((a, b) => b.quantity - a.quantity)[0];
   $("topProduct").innerHTML = topProduct
-    ? `<b>${clean(topProduct.name)}</b>
-       <p>Unidades vendidas: ${topProduct.quantity}</p>
-       <p>Facturación acumulada: ${money(topProduct.total)}</p>`
+    ? `<b>${clean(topProduct.name)}</b><p>Unidades vendidas: ${topProduct.quantity}</p><p>Facturación acumulada: ${money(topProduct.total)}</p>`
     : '<div class="empty">Todavía no hay ventas.</div>';
 
-  /* Últimas ventas */
   $("recentSales").innerHTML = sales.length
     ? sales.slice(0, 5).map(sale => {
         const time = getSaleTime(sale);
-        const dateText = time
-          ? new Date(time).toLocaleDateString("es-AR")
-          : "Fecha pendiente";
-
+        const dateText = time ? new Date(time).toLocaleDateString("es-AR") : "—";
         return `
           <div class="sale">
             <div style="flex:1">
@@ -1895,89 +1555,49 @@ function renderDashboard() {
       }).join("")
     : '<div class="empty">Todavía no hay ventas.</div>';
 
-  /* Productos con stock bajo */
-  const lowStock = products.filter(product =>
-    (Number(product.quantity) || 0) <= 3
-  );
-
+  const lowStock = products.filter(p => (Number(p.quantity) || 0) <= 3);
   $("lowStock").innerHTML = lowStock.length
-    ? lowStock.map(product => `
+    ? lowStock.map(p => `
         <div class="sale">
           <div style="flex:1">
-            <b>${clean(product.name || "Producto")}</b>
-            <p>${clean(product.category || "General")}</p>
+            <b>${clean(p.name || "Producto")}</b>
+            <p>${clean(p.category || "General")}</p>
           </div>
-          <span class="stock-status ${
-            Number(product.quantity) <= 0 ? "out" : "low"
-          }">${Number(product.quantity) || 0} unidades</span>
+          <span class="stock-status ${Number(p.quantity) <= 0 ? "out" : "low"}">${Number(p.quantity) || 0} unidades</span>
         </div>`).join("")
     : '<div class="empty">No hay productos con stock bajo.</div>';
 }
 
-/* =========================
-   GUARDAR DATOS DEL NEGOCIO
-========================= */
 $("settingsForm").addEventListener("submit", async event => {
   event.preventDefault();
-
   if (!currentBusinessId || !currentBusiness) return;
 
   const name = $("editBiz").value.trim();
   const owners = $("editOwners").value.trim();
   const type = $("editType").value;
-  const categories = $("editCategories").value
-    .split(",")
-    .map(value => value.trim())
-    .filter(Boolean);
-
-  if (!name || !owners || !categories.length) {
-    alert("Completá el nombre, los dueños y al menos una categoría.");
-    return;
-  }
+  const categories = $("editCategories").value.split(",").map(v => v.trim()).filter(Boolean);
 
   try {
-    await db.collection("businesses")
-      .doc(currentBusinessId)
-      .update({
-        name,
-        owners,
-        type,
-        categories,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
+    await db.collection("businesses").doc(currentBusinessId).update({
+      name, owners, type, categories,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
 
-    currentBusiness = {
-      ...currentBusiness,
-      name,
-      owners,
-      type,
-      categories
-    };
-
+    currentBusiness = { ...currentBusiness, name, owners, type, categories };
     setText("welcome", name);
     setText("storeSubInfo", type);
-
     fillCategoryOptions();
     await refreshBusinessList();
-
-    alert("Datos del negocio actualizados.");
+    alert("Datos actualizados.");
   } catch (error) {
     console.error(error);
     alert("No se pudieron guardar los cambios.");
   }
 });
 
-/* =========================
-   COPIAR CÓDIGO DE INVITACIÓN
-========================= */
 $("copyStoreCode").onclick = async () => {
   const code = currentBusiness?.accessCode;
-
-  if (!code) {
-    alert("No hay un código disponible.");
-    return;
-  }
-
+  if (!code) return;
   try {
     await navigator.clipboard.writeText(code);
     alert("Código copiado: " + code);
