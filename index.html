@@ -130,7 +130,7 @@ header {
 .secondary { background:#2b3953 }
 .whatsapp-btn { background:#25d366; color:black }
 
-/* Estilo para ocultar el texto feo del input file y dejarlo limpio */
+/* Ocultar nombre de archivo feo y mostrar botón limpio */
 .file-upload-wrapper {
   position: relative;
   overflow: hidden;
@@ -590,7 +590,7 @@ h2 { font-size:20px }
       <h1 style="margin-top:22px">Tu negocio</h1>
       <p class="sub">Creá tu emprendimiento o unite al de tu socio.</p>
     </div>
-    <button id="backSetupHome" type="button" class="secondary">← Volver a Home</button>
+    <button id="backSetupHome" type="button" class="secondary">← Volver al inicio</button>
   </div>
 
   <div class="tabs" id="setupTabsContainer">
@@ -944,7 +944,6 @@ async function loadPublicCatalog(codeOrId) {
     let bData = null;
     let bId = null;
 
-    // 1. Intentar buscar primero en LocalStorage
     const localList = JSON.parse(localStorage.getItem("stockea_local_businesses") || "[]");
     const foundLocal = localList.find(b => b.id === codeOrId || b.accessCode === codeOrId.toUpperCase());
     
@@ -953,7 +952,6 @@ async function loadPublicCatalog(codeOrId) {
       bId = foundLocal.id;
       products = JSON.parse(localStorage.getItem(`stockea_local_products_${bId}`) || "[]");
     } else {
-      // 2. Si no está en local, buscar en Firebase (con reglas públicas permitidas)
       try {
         let snap = await db.collection("businesses").doc(codeOrId).get();
         if (snap.exists) {
@@ -1801,28 +1799,25 @@ async function renderMembersList() {
    AUTENTICACIÓN INICIAL (NUBE)
 ========================= */
 auth.onAuthStateChanged(async user => {
-  if (appMode !== "cloud") return;
   currentUser = user;
   clearListeners();
 
-  hide("app");
-  hide("setup");
-  hide("homeScreen");
-
   if (!user) {
-    currentBusiness = null;
-    currentBusinessId = null;
-    products = [];
-    sales = [];
-    businessList = [];
-    userProfile = { displayName: "", photoURL: "" };
-    hide("headerAvatar");
-    hide("headerLogout");
-    showAuth();
+    if (appMode === "cloud") {
+      hide("app");
+      hide("setup");
+      hide("homeScreen");
+      hide("headerAvatar");
+      hide("headerLogout");
+      showAuth();
+      setText("userEmailDisplay", "");
+    }
     return;
   }
 
+  appMode = "cloud";
   hide("authScreen");
+  hide("modeSelectScreen");
   show("headerLogout");
 
   try {
@@ -1952,7 +1947,7 @@ $("pImageFile").addEventListener("change", async event => {
   }
 
   try {
-    $("imagePreviewinnerHTML", "Procesando imagen...");
+    $("imagePreview").textContent = "Procesando imagen...";
     const imageData = await compressImage(file);
     $("pImage").value = imageData;
     $("imagePreview").innerHTML = `<img alt="Vista previa" src="${imageData}" style="display:block;max-width:160px;max-height:160px;object-fit:contain;margin-top:10px;border-radius:10px">`;
