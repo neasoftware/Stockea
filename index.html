@@ -377,7 +377,6 @@ h2 { font-size:20px }
   box-shadow: 0 0 10px rgba(86, 140, 255, 0.3);
 }
 
-/* TARJETA PRODUCTO ESTRELLA MEJORADA */
 .star-product-card {
   display: flex;
   align-items: center;
@@ -520,13 +519,6 @@ h2 { font-size:20px }
 }
 .product-placeholder { font-size:42px }
 .product-card-body { padding:12px; flex: 1; }
-.product-category {
-  color:var(--muted);
-  font-size:11px;
-  text-transform:uppercase;
-  letter-spacing:.6px;
-  margin-bottom:6px;
-}
 .product-name {
   font-size:15px;
   line-height:1.35;
@@ -568,7 +560,7 @@ h2 { font-size:20px }
 }
 .stock-status { font-weight:bold; color:var(--green) }
 .stock-status.low { color:#ffc66d }
-.stock-status.out { color:var(--red) }
+.stock-status.out { color:#ff7184 }
 .product-actions {
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -729,7 +721,7 @@ h2 { font-size:20px }
     </div>
     <div class="field">
       <label>Categorías separadas por comas *</label>
-      <input id="categories" required placeholder="Ej.: General, Accesorios">
+      <input id="categories" required placeholder="Ej.: Funda, Cargador, Vidrio Templado">
     </div>
     <button type="submit" style="width:100%">Crear negocio</button>
   </form>
@@ -756,7 +748,7 @@ h2 { font-size:20px }
     </div>
 
     <div class="toolbar">
-      <input id="publicSearch" placeholder="🔎 Buscar producto...">
+      <input id="publicSearch" placeholder="🔎 Buscar por nombre, modelo o categoría...">
       <select id="publicFilterCategory"><option value="">Todas las categorías</option></select>
     </div>
 
@@ -835,14 +827,25 @@ h2 { font-size:20px }
         <h2 id="formTitle">Nuevo producto</h2>
         <form id="productForm">
           <div class="formgrid">
-            <div class="field"><label>Nombre *</label><input id="pName" required></div>
-            <div class="field"><label>Categoría *</label><select id="pCategory" required></select></div>
-            <div class="field"><label>Color / detalle</label><input id="pColor"></div>
+            <div class="field"><label>Nombre del producto *</label><input id="pName" required placeholder="Ej: Funda Silicona, Cargador"></div>
+            
+            <!-- CATEGORÍA Y MODELO JUNTOS -->
+            <div class="field">
+              <label>Categoría *</label>
+              <input id="pCategory" list="categoriesDatalist" required placeholder="Ej: Funda, Vidrio, Cargador">
+              <datalist id="categoriesDatalist"></datalist>
+            </div>
+            <div class="field">
+              <label>Modelo (Opcional - No se muestra en tarjeta)</label>
+              <input id="pModel" placeholder="Ej: iPhone 13, Samsung S23">
+            </div>
+
+            <div class="field"><label>Color / detalle</label><input id="pColor" placeholder="Ej: Negro, Rojo, Transparente"></div>
             <div class="field"><label>Color de referencia</label><input id="pColorCode" type="color" value="#568cff"></div>
             <div class="field"><label>Costo por unidad ($)</label><input id="pCost" type="number" min="0" step=".01" required></div>
             <div class="field"><label>Precio de venta ($)</label><input id="pPrice" type="number" min=".01" step=".01" required></div>
             <div class="field"><label>Cantidad disponible</label><input id="pQty" type="number" min="0" step="1" required></div>
-            <div class="field"><label>Código opcional</label><input id="pCode"></div>
+            <div class="field"><label>Código opcional</label><input id="pCode" placeholder="Ej: FND-IP13"></div>
             <div class="field full">
               <label>Foto opcional</label>
               <div class="file-upload-wrapper">
@@ -859,7 +862,7 @@ h2 { font-size:20px }
       </div>
 
       <div class="toolbar">
-        <input id="search" placeholder="🔎 Buscar por nombre, color o código...">
+        <input id="search" placeholder="🔎 Buscar por nombre, modelo, color o código...">
         <select id="filterCategory"><option value="">Todas las categorías</option></select>
       </div>
 
@@ -1067,7 +1070,6 @@ document.querySelectorAll(".theme-btn").forEach(btn => {
   btn.onclick = () => applyTheme(btn.dataset.theme);
 });
 
-// Cargar tema guardado
 const savedTheme = localStorage.getItem("stockea_user_theme") || "defecto";
 applyTheme(savedTheme);
 
@@ -1157,7 +1159,7 @@ function renderPublicProducts() {
   const category = $("publicFilterCategory")?.value || "";
 
   const filtered = products.filter(product => {
-    const searchable = [product.name, product.color, product.category].join(" ").toLowerCase();
+    const searchable = [product.name, product.model, product.color, product.category].join(" ").toLowerCase();
     return searchable.includes(search) && (!category || product.category === category);
   });
 
@@ -1174,7 +1176,6 @@ function renderPublicProducts() {
           ${product.image ? `<img src="${product.image}" alt="${clean(product.name)}">` : '<div class="product-placeholder">📦</div>'}
         </div>
         <div class="product-card-body">
-          <div class="product-category">${clean(product.category || "General")}</div>
           <div class="product-name">${clean(product.name)}</div>
           <div class="product-price">${money(product.price)}</div>
           <div class="product-stock" style="border:0;padding-top:5px">
@@ -1232,11 +1233,12 @@ function updateCartUI() {
   container.innerHTML = cart.map(item => {
     const subtotal = item.product.price * item.quantity;
     totalMoney += subtotal;
+    const modelInfo = item.product.model ? ` (${clean(item.product.model)})` : '';
 
     return `
       <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line)">
         <div style="flex:1">
-          <b>${clean(item.product.name)}</b>
+          <b>${clean(item.product.name)}${modelInfo}</b>
           <p class="sub" style="font-size:12px;margin:2px 0">${money(item.product.price)} c/u</p>
         </div>
         <div style="display:flex;align-items:center;gap:8px">
@@ -1290,7 +1292,8 @@ $("sendWhatsappBtn").onclick = () => {
   cart.forEach(item => {
     const subtotal = item.product.price * item.quantity;
     totalMoney += subtotal;
-    text += `• ${item.quantity}x *${item.product.name}* (${money(item.product.price)}) = ${money(subtotal)}\n`;
+    const modelText = item.product.model ? ` [Modelo: ${item.product.model}]` : '';
+    text += `• ${item.quantity}x *${item.product.name}*${modelText} (${money(item.product.price)}) = ${money(subtotal)}\n`;
   });
 
   text += `\n*TOTAL: ${money(totalMoney)}*\n\n¿Tienen disponibilidad para coordinar la entrega?`;
@@ -1324,7 +1327,6 @@ $("backToModeSelect").onclick = () => {
   hide("headerLogout");
 };
 
-// Botón universal de Salir
 const triggerLogout = async () => {
   clearListeners();
   if (appMode === "cloud") {
@@ -1574,7 +1576,6 @@ document.querySelectorAll("nav [data-page]").forEach(button => {
   });
 });
 
-// Al hacer clic en tu avatar arriba a la derecha, se abre la sección de perfil
 const openProfileView = () => {
   document.querySelectorAll("nav [data-page]").forEach(item => {
     item.classList.remove("active");
@@ -1920,7 +1921,7 @@ $("profileForm").addEventListener("submit", async event => {
 });
 
 /* =========================
-   OBTENER, MOSTRAR Y EXPULSAR MIEMBROS DEL NEGOCIO (NUBE)
+   MIEMBROS DEL NEGOCIO (NUBE)
 ========================= */
 async function renderMembersList() {
   if (appMode !== "cloud" || !currentBusiness) return;
@@ -2057,7 +2058,7 @@ function showAuth() {
 }
 
 /* =========================
-   ESCUCHAR CAMBIOS EN TIEMPO REAL (NUBE) O LOCAL
+   ESCUCHAR CAMBIOS EN TIEMPO REAL
 ========================= */
 function startBusinessListeners() {
   if (appMode === "local") return;
@@ -2104,23 +2105,19 @@ function getCategories() {
 
 function fillCategoryOptions() {
   const categories = getCategories();
-  const categorySelect = $("pCategory");
+  const datalist = $("categoriesDatalist");
   const filterSelect = $("filterCategory");
 
-  if (!categorySelect || !filterSelect) return;
+  if (datalist) {
+    datalist.innerHTML = categories.map(c => `<option value="${clean(c)}">`).join("");
+  }
 
-  const prevCat = categorySelect.value;
-  const prevFilt = filterSelect.value;
-
-  categorySelect.innerHTML = categories.length
-    ? categories.map(c => `<option value="${clean(c)}">${clean(c)}</option>`).join("")
-    : '<option value="General">General</option>';
-
-  filterSelect.innerHTML = '<option value="">Todas las categorías</option>' +
-    categories.map(c => `<option value="${clean(c)}">${clean(c)}</option>`).join("");
-
-  if (categories.includes(prevCat)) categorySelect.value = prevCat;
-  if (categories.includes(prevFilt)) filterSelect.value = prevFilt;
+  if (filterSelect) {
+    const prevFilt = filterSelect.value;
+    filterSelect.innerHTML = '<option value="">Todas las categorías</option>' +
+      categories.map(c => `<option value="${clean(c)}">${clean(c)}</option>`).join("");
+    if (categories.includes(prevFilt)) filterSelect.value = prevFilt;
+  }
 }
 
 $("addProductBtn").onclick = () => {
@@ -2193,7 +2190,8 @@ $("productForm").addEventListener("submit", async event => {
   if (!currentBusinessId) return;
 
   const name = $("pName").value.trim();
-  const category = $("pCategory").value || "General";
+  const category = $("pCategory").value.trim() || "General";
+  const model = $("pModel").value.trim();
   const color = $("pColor").value.trim();
   const colorCode = $("pColorCode").value || "#568cff";
   const cost = Number($("pCost").value);
@@ -2207,9 +2205,25 @@ $("productForm").addEventListener("submit", async event => {
 
   try {
     const data = {
-      name, category, color, colorCode, cost, price, quantity, code, image,
+      name, category, model, color, colorCode, cost, price, quantity, code, image,
       updatedAt: Date.now()
     };
+
+    if (currentBusiness && !currentBusiness.categories.includes(category)) {
+      currentBusiness.categories.push(category);
+      if (appMode === "cloud") {
+        await db.collection("businesses").doc(currentBusinessId).update({
+          categories: firebase.firestore.FieldValue.arrayUnion(category)
+        });
+      } else {
+        const list = await getLocalBusinesses();
+        const index = list.findIndex(b => b.id === currentBusinessId);
+        if (index !== -1) {
+          list[index].categories = currentBusiness.categories;
+          await saveLocalBusinesses(list);
+        }
+      }
+    }
 
     if (appMode === "local") {
       products = await getLocalProducts(currentBusinessId);
@@ -2264,7 +2278,7 @@ function renderProducts() {
   const category = $("filterCategory")?.value || "";
 
   const filtered = products.filter(product => {
-    const searchable = [product.name, product.color, product.code, product.category].join(" ").toLowerCase();
+    const searchable = [product.name, product.model, product.color, product.code, product.category].join(" ").toLowerCase();
     return searchable.includes(search) && (!category || product.category === category);
   });
 
@@ -2284,7 +2298,6 @@ function renderProducts() {
           ${product.image ? `<img src="${product.image}" alt="${clean(product.name)}">` : '<div class="product-placeholder">📦</div>'}
         </div>
         <div class="product-card-body">
-          <div class="product-category">${clean(product.category || "General")}</div>
           <div class="product-name">${clean(product.name || "Producto")}</div>
           ${product.color ? `
             <div class="product-color">
@@ -2321,6 +2334,7 @@ function editProduct(id) {
 
   $("pName").value = product.name || "";
   $("pCategory").value = product.category || "General";
+  $("pModel").value = product.model || "";
   $("pColor").value = product.color || "";
   $("pColorCode").value = product.colorCode || "#568cff";
   $("pCost").value = Number(product.cost) || 0;
@@ -2362,7 +2376,8 @@ async function sellProduct(id) {
   const available = Number(product.quantity) || 0;
   if (available <= 0) return alert("Este producto no tiene stock.");
 
-  const answer = prompt(`Vender: ${product.name}\nDisponibles: ${available}\n\n¿Cuántas unidades vendiste?`, "1");
+  const modelInfo = product.model ? ` (${product.model})` : '';
+  const answer = prompt(`Vender: ${product.name}${modelInfo}\nDisponibles: ${available}\n\n¿Cuántas unidades vendiste?`, "1");
   if (!answer) return;
 
   const quantity = Number(answer);
@@ -2379,7 +2394,7 @@ async function sellProduct(id) {
       const newSale = {
         id: "sale_" + Date.now(),
         productId: id,
-        productName: product.name || "Producto",
+        productName: product.name + (product.model ? ` (${product.model})` : ''),
         quantity,
         unitPrice: product.price || 0,
         unitCost: product.cost || 0,
@@ -2413,9 +2428,11 @@ async function sellProduct(id) {
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       });
 
+      const fullName = freshData.name + (freshData.model ? ` (${freshData.model})` : '');
+
       transaction.set(saleRef, {
         productId: id,
-        productName: freshData.name || "Producto",
+        productName: fullName,
         quantity,
         unitPrice: freshData.price || 0,
         unitCost: freshData.cost || 0,
@@ -2617,7 +2634,7 @@ function renderDashboard() {
     ? lowStock.map(p => `
         <div class="sale">
           <div style="flex:1">
-            <b>${clean(p.name || "Producto")}</b>
+            <b>${clean(p.name || "Producto")} ${p.model ? `(${clean(p.model)})` : ''}</b>
             <p>${clean(p.category || "General")}</p>
           </div>
           <span class="stock-status ${Number(p.quantity) <= 0 ? "out" : "low"}">${Number(p.quantity) || 0} unidades</span>
