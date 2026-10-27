@@ -842,12 +842,23 @@ h2 { font-size:20px }
         <div class="card"><p>Valor del stock a costo</p><strong id="statValue">$0</strong></div>
       </div>
 
+      <!-- DESGLOSE POR MÉTODO DE PAGO -->
+      <div class="panel" style="margin-top:18px">
+        <h2>💳 Cobros por Método de Pago</h2>
+        <div class="stats" style="margin-top:12px">
+          <div class="card"><p>Efectivo</p><strong id="statCash" style="font-size:19px">$0</strong></div>
+          <div class="card"><p>Transferencia / MP</p><strong id="statTransfer" style="font-size:19px">$0</strong></div>
+          <div class="card"><p>Tarjeta</p><strong id="statCard" style="font-size:19px">$0</strong></div>
+          <div class="card"><p>Otros</p><strong id="statOther" style="font-size:19px">$0</strong></div>
+        </div>
+      </div>
+
       <div class="panel">
         <h2>🏆 Producto estrella (Más vendido)</h2>
         <div id="topProduct" class="empty">Todavía no hay ventas.</div>
       </div>
       <div class="panel"><h2>Últimas ventas</h2><div id="recentSales"></div></div>
-      <div class="panel"><h2>Stock bajo (≤ 3 unidades)</h2><div id="lowStock"></div></div>
+      <div class="panel"><h2>Stock bajo</h2><div id="lowStock"></div></div>
     </section>
 
     <!-- PANTALLA PRINCIPAL DE STOCK (LISTADO Y BUSCADOR) -->
@@ -857,7 +868,10 @@ h2 { font-size:20px }
           <h1>Stock</h1>
           <p class="sub">Productos, precios y cantidades.</p>
         </div>
-        <button id="addProductBtn">+ Agregar producto</button>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button id="exportStockExcel" class="secondary">📊 Exportar Excel</button>
+          <button id="addProductBtn">+ Agregar producto</button>
+        </div>
       </div>
 
       <div class="toolbar">
@@ -896,6 +910,7 @@ h2 { font-size:20px }
             <div class="field"><label>Costo por unidad ($)</label><input id="pCost" type="number" min="0" step=".01" required></div>
             <div class="field"><label>Precio de venta ($)</label><input id="pPrice" type="number" min=".01" step=".01" required></div>
             <div class="field"><label>Cantidad disponible</label><input id="pQty" type="number" min="0" step="1" required></div>
+            <div class="field"><label>Stock mínimo de alerta</label><input id="pMinStock" type="number" min="0" step="1" value="3" required></div>
             <div class="field"><label>Código opcional</label><input id="pCode" placeholder="Ej: FND-IP13"></div>
             <div class="field full">
               <label>Foto opcional</label>
@@ -913,8 +928,13 @@ h2 { font-size:20px }
     </section>
 
     <section id="sales" class="hidden">
-      <h1>Ventas</h1>
-      <p class="sub">Historial del negocio.</p>
+      <div class="sectionhead">
+        <div>
+          <h1>Ventas</h1>
+          <p class="sub">Historial del negocio.</p>
+        </div>
+        <button id="exportSalesExcel" class="secondary">📊 Exportar Ventas a Excel</button>
+      </div>
       <div class="panel"><h2>Registro de ventas</h2><div id="allSales"></div></div>
     </section>
 
@@ -1226,8 +1246,9 @@ function renderPublicProducts() {
 
   container.innerHTML = filtered.map(product => {
     const quantity = Number(product.quantity) || 0;
-    const stockClass = quantity <= 0 ? "out" : quantity <= 3 ? "low" : "green";
-    const stockLabel = quantity <= 0 ? "Agotado" : quantity <= 3 ? `Stock bajo (${quantity} disp.)` : `Disponibles: ${quantity}`;
+    const minStock = Number(product.minStock) || 3;
+    const stockClass = quantity <= 0 ? "out" : quantity <= minStock ? "low" : "green";
+    const stockLabel = quantity <= 0 ? "Agotado" : quantity <= minStock ? `Stock bajo (${quantity} disp.)` : `Disponibles: ${quantity}`;
 
     return `
       <article class="product-card">
@@ -2201,6 +2222,7 @@ $("addProductBtn").onclick = () => {
   editingProductId = null;
   $("productForm").reset();
   $("pColorCode").value = "#568cff";
+  $("pMinStock").value = "3";
   $("pImage").value = "";
   $("pImageFile").value = "";
   $("imagePreview").innerHTML = "";
@@ -2276,6 +2298,7 @@ $("productForm").addEventListener("submit", async event => {
   const cost = Number($("pCost").value);
   const price = Number($("pPrice").value);
   const quantity = Number($("pQty").value);
+  const minStock = Number($("pMinStock").value) || 3;
   const code = $("pCode").value.trim();
   const image = $("pImage").value || "";
 
@@ -2284,7 +2307,7 @@ $("productForm").addEventListener("submit", async event => {
 
   try {
     const data = {
-      name, category, model, colorCode, cost, price, quantity, code, image,
+      name, category, model, colorCode, cost, price, quantity, minStock, code, image,
       updatedAt: Date.now()
     };
 
@@ -2370,8 +2393,9 @@ function renderProducts() {
 
   container.innerHTML = filtered.map(product => {
     const quantity = Number(product.quantity) || 0;
-    const stockClass = quantity <= 0 ? "out" : quantity <= 3 ? "low" : "";
-    const stockLabel = quantity <= 0 ? "Sin stock" : quantity <= 3 ? "Stock bajo" : "Disponible";
+    const minStock = Number(product.minStock) || 3;
+    const stockClass = quantity <= 0 ? "out" : quantity <= minStock ? "low" : "";
+    const stockLabel = quantity <= 0 ? "Sin stock" : quantity <= minStock ? "Stock bajo" : "Disponible";
 
     return `
       <article class="product-card">
@@ -2419,6 +2443,7 @@ function editProduct(id) {
   $("pCost").value = Number(product.cost) || 0;
   $("pPrice").value = Number(product.price) || 0;
   $("pQty").value = Number(product.quantity) || 0;
+  $("pMinStock").value = Number(product.minStock) || 3;
   $("pCode").value = product.code || "";
   $("pImage").value = product.image || "";
 
@@ -2466,6 +2491,12 @@ async function sellProduct(id) {
     return alert("Cantidad no válida.");
   }
 
+  const paymentMethodPrompt = prompt("Método de pago:\n1. Efectivo\n2. Transferencia / Mercado Pago\n3. Tarjeta\n4. Otro", "1");
+  let paymentMethod = "Efectivo";
+  if (paymentMethodPrompt === "2") paymentMethod = "Transferencia / MP";
+  else if (paymentMethodPrompt === "3") paymentMethod = "Tarjeta";
+  else if (paymentMethodPrompt === "4") paymentMethod = "Otro";
+
   try {
     if (appMode === "local") {
       product.quantity -= quantity;
@@ -2482,6 +2513,7 @@ async function sellProduct(id) {
         unitCost: product.cost || 0,
         total: (product.price || 0) * quantity,
         profit: ((product.price || 0) - (product.cost || 0)) * quantity,
+        paymentMethod,
         createdAt: Date.now()
       };
       sales.unshift(newSale);
@@ -2521,6 +2553,7 @@ async function sellProduct(id) {
         unitCost: freshData.cost || 0,
         total: (freshData.price || 0) * quantity,
         profit: ((freshData.price || 0) - (freshData.cost || 0)) * quantity,
+        paymentMethod,
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         soldBy: currentUser.uid
       });
@@ -2598,13 +2631,14 @@ function renderSales() {
     const date = getSaleTime(sale);
     const dateText = date ? new Date(date).toLocaleString("es-AR") : "Fecha pendiente";
     const imgHTML = sale.productImage ? `<img src="${sale.productImage}" alt="Foto">` : "📦";
+    const methodText = sale.paymentMethod ? ` · Pago: ${sale.paymentMethod}` : '';
 
     return `
       <div class="sale">
         <div class="sale-item-thumb">${imgHTML}</div>
         <div style="flex:1;min-width:150px">
           <b>${clean(sale.productName || "Producto")}</b>
-          <p>${dateText} · Cantidad: ${Number(sale.quantity) || 0}</p>
+          <p>${dateText} · Cantidad: ${Number(sale.quantity) || 0}${methodText}</p>
         </div>
         <div class="sale-actions">
           <div style="text-align:right">
@@ -2657,10 +2691,26 @@ function renderDashboard() {
   const stockUnits = products.reduce((s, x) => s + (Number(x.quantity) || 0), 0);
   const stockValue = products.reduce((s, x) => s + (Number(x.cost) || 0) * (Number(x.quantity) || 0), 0);
 
+  // Desglose por método de pago
+  let cashTotal = 0, transferTotal = 0, cardTotal = 0, otherTotal = 0;
+  periodSales.forEach(s => {
+    const amt = Number(s.total) || 0;
+    const method = s.paymentMethod || "Efectivo";
+    if (method === "Efectivo") cashTotal += amt;
+    else if (method.includes("Transferencia")) transferTotal += amt;
+    else if (method === "Tarjeta") cardTotal += amt;
+    else otherTotal += amt;
+  });
+
   setText("statSales", money(totalSales));
   setText("statProfit", money(totalProfit));
   setText("statStock", stockUnits);
   setText("statValue", money(stockValue));
+
+  setText("statCash", money(cashTotal));
+  setText("statTransfer", money(transferTotal));
+  setText("statCard", money(cardTotal));
+  setText("statOther", money(otherTotal));
 
   const soldByProduct = {};
   periodSales.forEach(sale => {
@@ -2698,12 +2748,13 @@ function renderDashboard() {
         const time = getSaleTime(sale);
         const dateText = time ? new Date(time).toLocaleDateString("es-AR") : "—";
         const imgHTML = sale.productImage ? `<img src="${sale.productImage}" alt="Foto">` : "📦";
+        const methodText = sale.paymentMethod ? ` · ${sale.paymentMethod}` : '';
         return `
           <div class="sale">
             <div class="sale-item-thumb">${imgHTML}</div>
             <div style="flex:1">
               <b>${clean(sale.productName || "Producto")}</b>
-              <p>${dateText} · ${Number(sale.quantity) || 0} unidad(es)</p>
+              <p>${dateText} · ${Number(sale.quantity) || 0} unidad(es)${methodText}</p>
             </div>
             <div class="sale-actions">
               <b>${money(sale.total)}</b>
@@ -2717,18 +2768,51 @@ function renderDashboard() {
     btn.onclick = () => cancelSale(btn.dataset.cancelSale);
   });
 
-  const lowStock = products.filter(p => (Number(p.quantity) || 0) <= 3);
+  const lowStock = products.filter(p => (Number(p.quantity) || 0) <= (Number(p.minStock) || 3));
   $("lowStock").innerHTML = lowStock.length
     ? lowStock.map(p => `
         <div class="sale">
           <div class="sale-item-thumb">${p.image ? `<img src="${p.image}" alt="Foto">` : "📦"}</div>
           <div style="flex:1">
             <b>${clean(p.name || "Producto")}</b>
-            <p>Stock bajo</p>
+            <p>Stock bajo (Mínimo: ${p.minStock || 3})</p>
           </div>
           <span class="stock-status ${Number(p.quantity) <= 0 ? "out" : "low"}">${Number(p.quantity) || 0} unidades</span>
         </div>`).join("")
     : '<div class="empty">No hay productos con stock bajo.</div>';
+}
+
+/* =========================
+   EXPORTAR A EXCEL (CSV)
+========================= */
+$("exportStockExcel").onclick = () => {
+  if (!products.length) return alert("No hay productos para exportar.");
+  let csv = "Nombre,Categoria,Modelo,Costo,Precio,Cantidad,StockMinimo,Codigo\n";
+  products.forEach(p => {
+    csv += `"${p.name || ""}","${p.category || ""}","${p.model || ""}","${p.cost || 0}","${p.price || 0}","${p.quantity || 0}","${p.minStock || 3}","${p.code || ""}"\n`;
+  });
+  downloadCSV(csv, "stock_stockea.csv");
+};
+
+$("exportSalesExcel").onclick = () => {
+  if (!sales.length) return alert("No hay ventas para exportar.");
+  let csv = "Fecha,Producto,Cantidad,PrecioUnitario,CostoUnitario,Total,Ganancia,MetodoPago\n";
+  sales.forEach(s => {
+    const d = s.createdAt ? new Date(getSaleTime(s)).toLocaleString("es-AR") : "";
+    csv += `"${d}","${s.productName || ""}","${s.quantity || 0}","${s.unitPrice || 0}","${s.unitCost || 0}","${s.total || 0}","${s.profit || 0}","${s.paymentMethod || "Efectivo"}"\n`;
+  });
+  downloadCSV(csv, "ventas_stockea.csv");
+};
+
+function downloadCSV(csv, filename) {
+  const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  link.style.display = 'none';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
 $("settingsForm").addEventListener("submit", async event => {
