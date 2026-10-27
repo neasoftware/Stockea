@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Stockeá — Gestión de negocios</title>
 
+<!-- MANIFIESTO PWA INTEGRADO PARA PERMITIR INSTALACIÓN -->
+<link rel="manifest" href='data:application/manifest+json,{"name":"Stockeá","short_name":"Stockeá","start_url":".","display":"standalone","background_color":"#0b1020","theme_color":"#568cff","icons":[{"src":"data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23568cff%22><path d=%22M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z%22/></svg>","sizes":"192x192","type":"image/svg+xml"}]}'>
+
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -21,7 +24,6 @@
   --red:#ff7184;
 }
 
-/* TEMAS PERSONALIZADOS */
 body.theme-oscuro {
   --bg: #0b1020;
   --panel: #141d31;
@@ -2691,7 +2693,6 @@ function renderDashboard() {
   const stockUnits = products.reduce((s, x) => s + (Number(x.quantity) || 0), 0);
   const stockValue = products.reduce((s, x) => s + (Number(x.cost) || 0) * (Number(x.quantity) || 0), 0);
 
-  // Desglose por método de pago
   let cashTotal = 0, transferTotal = 0, cardTotal = 0, otherTotal = 0;
   periodSales.forEach(s => {
     const amt = Number(s.total) || 0;
