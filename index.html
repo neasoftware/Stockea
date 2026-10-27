@@ -78,8 +78,8 @@ header {
   gap:10px;
 }
 .avatar-mini {
-  width:36px;
-  height:36px;
+  width:38px;
+  height:38px;
   border-radius:50%;
   background:#20375c;
   display:flex;
@@ -87,7 +87,7 @@ header {
   justify-content:center;
   font-weight:bold;
   overflow:hidden;
-  border:1px solid var(--line);
+  border:1px solid var(--blue);
   flex-shrink:0;
 }
 .avatar-mini img {
@@ -423,7 +423,7 @@ h2 { font-size:20px }
 }
 .stock-status { font-weight:bold; color:var(--green) }
 .stock-status.low { color:#ffc66d }
-.stock-status.out { color:var(--red) }
+.stock-status.out { color:#ff7184 }
 .product-actions {
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -493,9 +493,8 @@ h2 { font-size:20px }
 <header>
   <div class="logo">Stockeá<span>.</span></div>
   <div class="user-header-info">
-    <div id="headerAvatar" class="avatar-mini hidden">👤</div>
+    <div id="headerAvatar" class="avatar-mini hidden" style="cursor:pointer" title="Ir a Perfil">👤</div>
     <span id="userEmailDisplay" class="muted"></span>
-    <button id="headerLogout" class="secondary hidden">Salir / Cambiar modo</button>
   </div>
 </header>
 
@@ -547,6 +546,10 @@ h2 { font-size:20px }
     <div class="home-actions">
       <button id="homeCreateBtn" type="button">＋ Crear negocio</button>
       <button id="homeJoinBtn" class="secondary" type="button">⇄ Unirse a negocio</button>
+    </div>
+
+    <div style="margin-top:25px; text-align:center;">
+      <button id="homeLogout" class="secondary" style="max-width:300px; width:100%;">🚪 Salir / Cambiar modo</button>
     </div>
   </main>
 </div>
@@ -654,6 +657,9 @@ h2 { font-size:20px }
     <button data-page="sales">↗ Ventas</button>
     <button data-page="settings">⚙ Mi negocio</button>
     <button data-page="profile">👤 Perfil</button>
+    <div style="margin-top:30px; border-top:1px solid var(--line); padding-top:15px">
+      <button type="button" id="navLogoutBtn" class="secondary" style="width:100%; font-size:12px; padding:8px">🚪 Salir / Cambiar</button>
+    </div>
   </nav>
 
   <main>
@@ -834,7 +840,7 @@ let currentBusinessId = null;
 let products = [];
 let sales = [];
 let businessList = [];
-let cart = []; // { product, quantity }
+let cart = []; 
 let authMode = "login";
 let editingProductId = null;
 let productUnsubscribe = null;
@@ -907,37 +913,42 @@ async function loadPublicCatalog(codeOrId) {
     let bData = null;
     let bId = null;
 
-    // Buscar en Firestore por ID o Código
-    let snap = await db.collection("businesses").doc(codeOrId).get();
-    if (snap.exists) {
-      bData = snap.data();
-      bId = snap.id;
+    // 1. Intentar buscar primero en LocalStorage
+    const localList = JSON.parse(localStorage.getItem("stockea_local_businesses") || "[]");
+    const foundLocal = localList.find(b => b.id === codeOrId || b.accessCode === codeOrId.toUpperCase());
+    
+    if (foundLocal) {
+      bData = foundLocal;
+      bId = foundLocal.id;
+      products = JSON.parse(localStorage.getItem(`stockea_local_products_${bId}`) || "[]");
     } else {
-      const query = await db.collection("businesses").where("accessCode", "==", codeOrId.toUpperCase()).get();
-      if (!query.empty) {
-        snap = query.docs[0];
-        bData = snap.data();
-        bId = snap.id;
-      }
-    }
+      // 2. Si no está en local, buscar en Firebase
+      try {
+        let snap = await db.collection("businesses").doc(codeOrId).get();
+        if (snap.exists) {
+          bData = snap.data();
+          bId = snap.id;
+        } else {
+          const query = await db.collection("businesses").where("accessCode", "==", codeOrId.toUpperCase()).get();
+          if (!query.empty) {
+            snap = query.docs[0];
+            bData = snap.data();
+            bId = snap.id;
+          }
+        }
 
-    // Buscar en LocalStorage si no encontró en Firebase
-    if (!bData) {
-      const localList = JSON.parse(localStorage.getItem("stockea_local_businesses") || "[]");
-      const found = localList.find(b => b.id === codeOrId || b.accessCode === codeOrId);
-      if (found) {
-        bData = found;
-        bId = found.id;
-        products = JSON.parse(localStorage.getItem(`stockea_local_products_${bId}`) || "[]");
+        if (bId) {
+          const prodSnap = await db.collection("businesses").doc(bId).collection("products").get();
+          products = prodSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        }
+      } catch (fbError) {
+        console.warn("No se pudo leer de Firestore:", fbError);
       }
-    } else {
-      const prodSnap = await db.collection("businesses").doc(bId).collection("products").get();
-      products = prodSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     }
 
     if (!bData) {
       setText("publicCatalogTitle", "Catálogo no encontrado");
-      $("publicProductList").innerHTML = '<div class="panel empty">El catálogo que buscás no existe o caducó.</div>';
+      $("publicProductList").innerHTML = '<div class="panel empty">El catálogo que buscás no existe o el enlace es incorrecto.</div>';
       return;
     }
 
@@ -1120,7 +1131,6 @@ $("btnCloudMode").onclick = () => {
   appMode = "cloud";
   hide("modeSelectScreen");
   show("authScreen");
-  show("headerLogout");
   setText("userEmailDisplay", "Modo Nube");
 };
 
@@ -1128,7 +1138,6 @@ $("btnLocalMode").onclick = () => {
   appMode = "local";
   hide("modeSelectScreen");
   hide("authScreen");
-  show("headerLogout");
   setText("userEmailDisplay", "Modo Local");
   initLocalMode();
 };
@@ -1136,12 +1145,12 @@ $("btnLocalMode").onclick = () => {
 $("backToModeSelect").onclick = () => {
   hide("authScreen");
   show("modeSelectScreen");
-  hide("headerLogout");
   hide("headerAvatar");
   setText("userEmailDisplay", "");
 };
 
-$("headerLogout").onclick = async () => {
+// Botón universal de Salir / Cambiar modo
+const triggerLogout = async () => {
   clearListeners();
   if (appMode === "cloud") {
     try { await auth.signOut(); } catch(e){}
@@ -1159,9 +1168,11 @@ $("headerLogout").onclick = async () => {
   hide("authScreen");
   hide("headerAvatar");
   show("modeSelectScreen");
-  hide("headerLogout");
   setText("userEmailDisplay", "");
 };
+
+$("homeLogout").onclick = triggerLogout;
+$("navLogoutBtn").onclick = triggerLogout;
 
 /* =========================
    MODO LOCAL (LOCALSTORAGE)
@@ -1386,6 +1397,17 @@ document.querySelectorAll("nav [data-page]").forEach(button => {
     if (page === "profile") loadProfileSection();
   });
 });
+
+$("headerAvatar").onclick = () => {
+  if (!currentBusinessId) return;
+  document.querySelectorAll("nav [data-page]").forEach(item => {
+    item.classList.toggle("active", item.dataset.page === "profile");
+  });
+  ["dashboard", "stock", "sales", "settings", "profile"].forEach(id => {
+    $(id).classList.toggle("hidden", id !== "profile");
+  });
+  loadProfileSection();
+};
 
 /* =========================
    CONFIGURACIÓN CREAR / UNIR
