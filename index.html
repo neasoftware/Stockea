@@ -127,6 +127,7 @@ header {
 .green { color:var(--green) }
 .danger { background:#512738; color:#ffb7c1 }
 .secondary { background:#2b3953 }
+.whatsapp-btn { background:#25d366; color:black }
 #setup {
   max-width:550px;
   margin:30px auto;
@@ -216,7 +217,7 @@ h2 { font-size:20px }
   margin-top:25px;
 }
 
-/* MIEMBROS Y PERFIL */
+/* CARRITO FLOTANTE Y MIEMBROS */
 .members-list {
   display:flex;
   flex-direction:column;
@@ -265,8 +266,30 @@ h2 { font-size:20px }
   height:100%;
   object-fit:cover;
 }
+.cart-floating-btn {
+  position:fixed;
+  bottom:20px;
+  right:20px;
+  background:#25d366;
+  color:black;
+  padding:14px 20px;
+  border-radius:50px;
+  font-weight:bold;
+  box-shadow:0 6px 16px rgba(0,0,0,0.4);
+  z-index:99;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.cart-badge {
+  background:black;
+  color:white;
+  padding:2px 8px;
+  border-radius:12px;
+  font-size:12px;
+}
 
-/* HOME */
+/* HOME Y PRODUCTOS */
 #homeScreen main { padding-top:30px }
 .home-title {
   display:flex;
@@ -305,15 +328,8 @@ h2 { font-size:20px }
   font-size:25px;
   margin-bottom:14px;
 }
-.business-card h3 {
-  margin:0 0 7px;
-  overflow-wrap:anywhere;
-}
-.business-card p {
-  color:var(--muted);
-  font-size:13px;
-  min-height:32px;
-}
+.business-card h3 { margin:0 0 7px; overflow-wrap:anywhere; }
+.business-card p { color:var(--muted); font-size:13px; min-height:32px; }
 .business-card button { width:100% }
 .home-actions {
   display:grid;
@@ -323,7 +339,6 @@ h2 { font-size:20px }
 }
 .home-actions button { min-height:48px }
 
-/* CUADRÍCULA DE PRODUCTOS */
 #productList.product-grid {
   display:grid;
   grid-template-columns:repeat(4,minmax(0,1fr));
@@ -395,11 +410,7 @@ h2 { font-size:20px }
   color:#75a7ff;
   overflow-wrap:anywhere;
 }
-.product-cost {
-  color:var(--muted);
-  font-size:12px;
-  margin-top:4px;
-}
+.product-cost { color:var(--muted); font-size:12px; margin-top:4px; }
 .product-stock {
   display:flex;
   justify-content:space-between;
@@ -426,7 +437,6 @@ h2 { font-size:20px }
 }
 .product-actions .danger { grid-column:1/-1 }
 
-/* Historial de ventas */
 .sale {
   display:flex;
   align-items:center;
@@ -436,22 +446,11 @@ h2 { font-size:20px }
   flex-wrap:wrap;
 }
 .sale:last-child { border-bottom:0 }
-.sale p {
-  color:var(--muted);
-  font-size:13px;
-  margin:5px 0 0;
-}
-.sale-actions {
-  display:flex;
-  align-items:center;
-  gap:10px;
-  margin-left:auto;
-}
+.sale p { color:var(--muted); font-size:13px; margin:5px 0 0; }
+.sale-actions { display:flex; align-items:center; gap:10px; margin-left:auto; }
 
 @media(max-width:950px) {
-  #productList.product-grid {
-    grid-template-columns:repeat(3,minmax(0,1fr));
-  }
+  #productList.product-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
 }
 @media(max-width:650px) {
   header { padding:12px }
@@ -472,20 +471,12 @@ h2 { font-size:20px }
     border-right:0;
     border-bottom:1px solid var(--line);
   }
-  nav button {
-    width:auto;
-    white-space:nowrap;
-    margin:0;
-    padding:10px;
-  }
+  nav button { width:auto; white-space:nowrap; margin:0; padding:10px; }
   main { padding:17px 12px }
   .stats,.toolbar,.formgrid { grid-template-columns:1fr }
   .formgrid .full { grid-column:auto }
   #addProductBtn { width:100% }
-  #productList.product-grid {
-    grid-template-columns:repeat(2,minmax(0,1fr));
-    gap:10px;
-  }
+  #productList.product-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
   .product-image { height:125px }
   .product-card-body { padding:10px }
   .product-name { font-size:14px }
@@ -586,6 +577,10 @@ h2 { font-size:20px }
       <input id="owners" required placeholder="Nombre de los dueños">
     </div>
     <div class="field">
+      <label>Número de WhatsApp para pedidos (con código de país, ej: 5493794123456) *</label>
+      <input id="phone" required placeholder="5493794123456">
+    </div>
+    <div class="field">
       <label>Rubro</label>
       <select id="businessType">
         <option>Tecnología y accesorios</option>
@@ -613,7 +608,44 @@ h2 { font-size:20px }
   <p id="setupError" class="hidden" style="color:var(--red);margin-top:10px;text-align:center"></p>
 </div>
 
-<!-- APLICACIÓN -->
+<!-- VISTA DE CATÁLOGO PÚBLICO DE SOLO LECTURA -->
+<div id="publicCatalogScreen" class="hidden">
+  <main>
+    <div class="sectionhead" style="margin-bottom:20px">
+      <div>
+        <h1 id="publicCatalogTitle">Catálogo de Productos</h1>
+        <p id="publicCatalogSub" class="sub">Mirá nuestros productos disponibles</p>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <input id="publicSearch" placeholder="🔎 Buscar producto...">
+      <select id="publicFilterCategory"><option value="">Todas las categorías</option></select>
+    </div>
+
+    <div id="publicProductList" class="product-grid"></div>
+  </main>
+
+  <button id="openCartBtn" class="cart-floating-btn hidden">
+    🛒 Mi Pedido <span id="cartCount" class="cart-badge">0</span>
+  </button>
+</div>
+
+<!-- MODAL DEL CARRITO DE COMPRAS -->
+<div id="cartModal" class="panel hidden" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1000;width:90%;max-width:480px;box-shadow:0 10px 25px rgba(0,0,0,0.8)">
+  <div class="sectionhead">
+    <h2>🛍️ Tu Pedido</h2>
+    <button id="closeCartBtn" class="secondary" style="padding:4px 10px">✕</button>
+  </div>
+  <div id="cartItemsList" style="max-height:300px;overflow-y:auto;margin:15px 0"></div>
+  <div style="border-top:1px solid var(--line);padding-top:12px;margin-bottom:15px;display:flex;justify-content:space-between;font-size:18px;font-weight:bold">
+    <span>Total:</span>
+    <span id="cartTotal" class="green">$0</span>
+  </div>
+  <button id="sendWhatsappBtn" class="whatsapp-btn" style="width:100%">📱 Pedir por WhatsApp</button>
+</div>
+
+<!-- APLICACIÓN PRIVADA -->
 <div id="app" class="layout hidden">
   <nav>
     <button type="button" id="backHomeBtn">⌂ Inicio</button>
@@ -708,9 +740,11 @@ h2 { font-size:20px }
       <p class="sub">Datos del emprendimiento.</p>
       <div class="panel">
         <div id="codeSectionContainer">
-          <p><b>Código para compartir:</b></p>
+          <p><b>Link de tu catálogo público:</b></p>
+          <button id="copyCatalogLinkBtn" class="whatsapp-btn" style="margin-bottom:15px">📋 Copiar enlace de catálogo</button>
+          <p><b>Código de invitación para socios:</b></p>
           <div id="displayStoreCode" class="codebox">—</div>
-          <button id="copyStoreCode" class="secondary" style="margin-top:10px">Copiar código</button>
+          <button id="copyStoreCode" class="secondary" style="margin-top:10px">Copiar código socio</button>
         </div>
 
         <div id="membersSectionContainer" style="margin-top:20px; border-top:1px solid var(--line); padding-top:15px">
@@ -724,6 +758,7 @@ h2 { font-size:20px }
         <form id="settingsForm" style="margin-top:20px; border-top:1px solid var(--line); padding-top:15px">
           <div class="field"><label>Nombre del negocio</label><input id="editBiz" required></div>
           <div class="field"><label>Dueños</label><input id="editOwners" required></div>
+          <div class="field"><label>Teléfono de WhatsApp (para ventas)</label><input id="editPhone" required></div>
           <div class="field">
             <label>Rubro</label>
             <select id="editType">
@@ -791,7 +826,7 @@ const db = firebase.firestore();
 /* =========================
    ESTADO DE LA APLICACIÓN
 ========================= */
-let appMode = null; // 'cloud' o 'local'
+let appMode = null; 
 let currentUser = null;
 let userProfile = { displayName: "", photoURL: "" };
 let currentBusiness = null;
@@ -799,6 +834,7 @@ let currentBusinessId = null;
 let products = [];
 let sales = [];
 let businessList = [];
+let cart = []; // { product, quantity }
 let authMode = "login";
 let editingProductId = null;
 let productUnsubscribe = null;
@@ -849,6 +885,233 @@ function clearListeners() {
   productUnsubscribe = null;
   salesUnsubscribe = null;
 }
+
+/* =========================
+   VERIFICAR SI ES ENLACE PÚBLICO
+========================= */
+window.addEventListener("DOMContentLoaded", async () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const catalogCode = urlParams.get("catalogo");
+
+  if (catalogCode) {
+    hide("modeSelectScreen");
+    await loadPublicCatalog(catalogCode);
+  }
+});
+
+async function loadPublicCatalog(codeOrId) {
+  try {
+    show("publicCatalogScreen");
+    setText("publicCatalogTitle", "Cargando catálogo...");
+
+    let bData = null;
+    let bId = null;
+
+    // Buscar en Firestore por ID o Código
+    let snap = await db.collection("businesses").doc(codeOrId).get();
+    if (snap.exists) {
+      bData = snap.data();
+      bId = snap.id;
+    } else {
+      const query = await db.collection("businesses").where("accessCode", "==", codeOrId.toUpperCase()).get();
+      if (!query.empty) {
+        snap = query.docs[0];
+        bData = snap.data();
+        bId = snap.id;
+      }
+    }
+
+    // Buscar en LocalStorage si no encontró en Firebase
+    if (!bData) {
+      const localList = JSON.parse(localStorage.getItem("stockea_local_businesses") || "[]");
+      const found = localList.find(b => b.id === codeOrId || b.accessCode === codeOrId);
+      if (found) {
+        bData = found;
+        bId = found.id;
+        products = JSON.parse(localStorage.getItem(`stockea_local_products_${bId}`) || "[]");
+      }
+    } else {
+      const prodSnap = await db.collection("businesses").doc(bId).collection("products").get();
+      products = prodSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    }
+
+    if (!bData) {
+      setText("publicCatalogTitle", "Catálogo no encontrado");
+      $("publicProductList").innerHTML = '<div class="panel empty">El catálogo que buscás no existe o caducó.</div>';
+      return;
+    }
+
+    currentBusiness = { id: bId, ...bData };
+    setText("publicCatalogTitle", currentBusiness.name || "Catálogo");
+    setText("publicCatalogSub", `Contacto / WhatsApp: ${currentBusiness.phone || "No especificado"}`);
+
+    fillPublicCategories();
+    renderPublicProducts();
+  } catch (error) {
+    console.error(error);
+    alert("Error al cargar el catálogo público.");
+  }
+}
+
+function fillPublicCategories() {
+  const categories = [...new Set(products.map(p => p.category).filter(Boolean))];
+  const filterSelect = $("publicFilterCategory");
+  filterSelect.innerHTML = '<option value="">Todas las categorías</option>' +
+    categories.map(c => `<option value="${clean(c)}">${clean(c)}</option>`).join("");
+}
+
+$("publicSearch").addEventListener("input", renderPublicProducts);
+$("publicFilterCategory").addEventListener("change", renderPublicProducts);
+
+function renderPublicProducts() {
+  const container = $("publicProductList");
+  const search = ($("publicSearch")?.value || "").toLowerCase().trim();
+  const category = $("publicFilterCategory")?.value || "";
+
+  const filtered = products.filter(product => {
+    const searchable = [product.name, product.color, product.category].join(" ").toLowerCase();
+    return searchable.includes(search) && (!category || product.category === category);
+  });
+
+  if (!filtered.length) {
+    container.innerHTML = '<div class="panel empty" style="grid-column:1/-1">No hay productos disponibles.</div>';
+    return;
+  }
+
+  container.innerHTML = filtered.map(product => {
+    const quantity = Number(product.quantity) || 0;
+    return `
+      <article class="product-card">
+        <div class="product-image">
+          ${product.image ? `<img src="${product.image}" alt="${clean(product.name)}">` : '<div class="product-placeholder">📦</div>'}
+        </div>
+        <div class="product-card-body">
+          <div class="product-category">${clean(product.category || "General")}</div>
+          <div class="product-name">${clean(product.name)}</div>
+          <div class="product-price">${money(product.price)}</div>
+          <div class="product-stock" style="border:0;padding-top:5px">
+            <span class="stock-status ${quantity <= 0 ? 'out' : 'green'}">${quantity > 0 ? 'Disponible' : 'Agotado'}</span>
+          </div>
+        </div>
+        <div style="padding:10px">
+          <button type="button" class="whatsapp-btn" style="width:100%" data-add-cart="${product.id}" ${quantity <= 0 ? 'disabled' : ''}>
+            🛒 Agregar al carrito
+          </button>
+        </div>
+      </article>`;
+  }).join("");
+
+  container.querySelectorAll("[data-add-cart]").forEach(btn => {
+    btn.onclick = () => addToCart(btn.dataset.addCart);
+  });
+}
+
+/* =========================
+   LÓGICA DEL CARRITO Y WHATSAPP
+========================= */
+function addToCart(productId) {
+  const product = products.find(p => p.id === productId);
+  if (!product) return;
+
+  const existing = cart.find(item => item.product.id === productId);
+  if (existing) {
+    if (existing.quantity < product.quantity) {
+      existing.quantity++;
+    } else {
+      alert("Alcanzaste el límite de stock disponible de este producto.");
+    }
+  } else {
+    cart.push({ product, quantity: 1 });
+  }
+
+  updateCartUI();
+}
+
+function updateCartUI() {
+  const totalCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+  setText("cartCount", totalCount);
+
+  if (totalCount > 0) {
+    show("openCartBtn");
+  } else {
+    hide("openCartBtn");
+    hide("cartModal");
+  }
+
+  const container = $("cartItemsList");
+  let totalMoney = 0;
+
+  container.innerHTML = cart.map(item => {
+    const subtotal = item.product.price * item.quantity;
+    totalMoney += subtotal;
+
+    return `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line)">
+        <div style="flex:1">
+          <b>${clean(item.product.name)}</b>
+          <p class="sub" style="font-size:12px;margin:2px 0">${money(item.product.price)} c/u</p>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <button type="button" class="secondary" data-cart-minus="${item.product.id}" style="padding:2px 8px">-</button>
+          <span><b>${item.quantity}</b></span>
+          <button type="button" class="secondary" data-cart-plus="${item.product.id}" style="padding:2px 8px">+</button>
+        </div>
+      </div>`;
+  }).join("");
+
+  setText("cartTotal", money(totalMoney));
+
+  container.querySelectorAll("[data-cart-minus]").forEach(btn => {
+    btn.onclick = () => changeCartQty(btn.dataset.cartMinus, -1);
+  });
+  container.querySelectorAll("[data-cart-plus]").forEach(btn => {
+    btn.onclick = () => changeCartQty(btn.dataset.cartPlus, 1);
+  });
+}
+
+function changeCartQty(productId, delta) {
+  const item = cart.find(i => i.product.id === productId);
+  if (!item) return;
+
+  item.quantity += delta;
+  if (item.quantity <= 0) {
+    cart = cart.filter(i => i.product.id !== productId);
+  } else if (item.quantity > item.product.quantity) {
+    item.quantity = item.product.quantity;
+    alert("Límite de stock disponible alcanzado.");
+  }
+
+  updateCartUI();
+}
+
+$("openCartBtn").onclick = () => show("cartModal");
+$("closeCartBtn").onclick = () => hide("cartModal");
+
+$("sendWhatsappBtn").onclick = () => {
+  if (!cart.length) return;
+
+  const phone = currentBusiness?.phone;
+  if (!phone) {
+    alert("El vendedor no configuró un número de WhatsApp.");
+    return;
+  }
+
+  let text = `¡Hola *${currentBusiness.name}*! Quisiera realizar el siguiente pedido:\n\n`;
+  let totalMoney = 0;
+
+  cart.forEach(item => {
+    const subtotal = item.product.price * item.quantity;
+    totalMoney += subtotal;
+    text += `• ${item.quantity}x *${item.product.name}* (${money(item.product.price)}) = ${money(subtotal)}\n`;
+  });
+
+  text += `\n*TOTAL: ${money(totalMoney)}*\n\n¿Tienen disponibilidad para coordinar la entrega?`;
+
+  const cleanPhone = phone.replace(/\D/g, "");
+  const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`;
+
+  window.open(whatsappUrl, "_blank");
+};
 
 /* =========================
    SELECTOR DE MODO INICIAL
@@ -1148,10 +1411,11 @@ $("createBizForm").addEventListener("submit", async event => {
 
   const name = $("bizName").value.trim();
   const owners = $("owners").value.trim();
+  const phone = $("phone").value.trim();
   const type = $("businessType").value;
   const categories = $("categories").value.split(",").map(v => v.trim()).filter(Boolean);
 
-  if (!name || !owners || !categories.length) {
+  if (!name || !owners || !phone || !categories.length) {
     showError("setupError", "Completá los campos obligatorios.");
     return;
   }
@@ -1165,7 +1429,7 @@ $("createBizForm").addEventListener("submit", async event => {
       const newId = "local_" + Date.now();
       const newBiz = {
         id: newId,
-        name, owners, type, categories,
+        name, owners, phone, type, categories,
         accessCode: "LOCAL",
         createdAt: Date.now()
       };
@@ -1188,7 +1452,7 @@ $("createBizForm").addEventListener("submit", async event => {
     const businessRef = db.collection("businesses").doc();
 
     const businessData = {
-      name, owners, type, categories,
+      name, owners, phone, type, categories,
       accessCode: code,
       ownerUid: currentUser.uid,
       memberUids: [currentUser.uid],
@@ -1335,6 +1599,7 @@ function setupBusinessUI() {
 
   $("editBiz").value = currentBusiness.name || "";
   $("editOwners").value = currentBusiness.owners || "";
+  $("editPhone").value = currentBusiness.phone || "";
   $("editType").value = currentBusiness.type || "Otro";
   $("editCategories").value = (currentBusiness.categories || []).join(", ");
 
@@ -1921,7 +2186,6 @@ async function cancelSale(saleId) {
 
   try {
     if (appMode === "local") {
-      // Devolver stock al producto
       products = await getLocalProducts(currentBusinessId);
       const product = products.find(p => p.id === sale.productId);
       if (product) {
@@ -1929,7 +2193,6 @@ async function cancelSale(saleId) {
         await saveLocalProducts(currentBusinessId, products);
       }
 
-      // Eliminar la venta
       sales = sales.filter(s => s.id !== saleId);
       await saveLocalSales(currentBusinessId, sales);
 
@@ -1940,7 +2203,6 @@ async function cancelSale(saleId) {
       return;
     }
 
-    // Modo Nube con transacción
     const saleRef = db.collection("businesses").doc(currentBusinessId).collection("sales").doc(saleId);
     const productRef = sale.productId ? db.collection("businesses").doc(currentBusinessId).collection("products").doc(sale.productId) : null;
 
@@ -2096,6 +2358,7 @@ $("settingsForm").addEventListener("submit", async event => {
 
   const name = $("editBiz").value.trim();
   const owners = $("editOwners").value.trim();
+  const phone = $("editPhone").value.trim();
   const type = $("editType").value;
   const categories = $("editCategories").value.split(",").map(v => v.trim()).filter(Boolean);
 
@@ -2104,16 +2367,16 @@ $("settingsForm").addEventListener("submit", async event => {
       const list = await getLocalBusinesses();
       const index = list.findIndex(b => b.id === currentBusinessId);
       if (index !== -1) {
-        list[index] = { ...list[index], name, owners, type, categories };
+        list[index] = { ...list[index], name, owners, phone, type, categories };
         await saveLocalBusinesses(list);
         currentBusiness = list[index];
       }
     } else {
       await db.collection("businesses").doc(currentBusinessId).update({
-        name, owners, type, categories,
+        name, owners, phone, type, categories,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       });
-      currentBusiness = { ...currentBusiness, name, owners, type, categories };
+      currentBusiness = { ...currentBusiness, name, owners, phone, type, categories };
     }
 
     setText("welcome", name);
@@ -2135,6 +2398,19 @@ $("copyStoreCode").onclick = async () => {
     alert("Código copiado: " + code);
   } catch (error) {
     prompt("Copiá este código para compartirlo:", code);
+  }
+};
+
+$("copyCatalogLinkBtn").onclick = async () => {
+  const code = currentBusiness?.accessCode || currentBusinessId;
+  const baseUrl = window.location.origin + window.location.pathname;
+  const link = `${baseUrl}?catalogo=${code}`;
+
+  try {
+    await navigator.clipboard.writeText(link);
+    alert("¡Enlace de catálogo copiado!\nCompartilo con tus clientes:\n" + link);
+  } catch (error) {
+    prompt("Copiá este enlace para enviar a tus clientes:", link);
   }
 };
 </script>
