@@ -89,6 +89,7 @@ header {
   overflow:hidden;
   border:1px solid var(--blue);
   flex-shrink:0;
+  cursor:pointer;
 }
 .avatar-mini img {
   width:100%;
@@ -128,6 +129,36 @@ header {
 .danger { background:#512738; color:#ffb7c1 }
 .secondary { background:#2b3953 }
 .whatsapp-btn { background:#25d366; color:black }
+
+/* Estilo para ocultar el texto feo del input file y dejarlo limpio */
+.file-upload-wrapper {
+  position: relative;
+  overflow: hidden;
+  display: inline-block;
+  width: 100%;
+}
+.file-upload-wrapper input[type=file] {
+  font-size: 100px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.file-upload-btn {
+  display: block;
+  width: 100%;
+  background: #20375c;
+  color: var(--txt);
+  padding: 10px;
+  text-align: center;
+  border-radius: 9px;
+  border: 1px dashed var(--blue);
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 13px;
+}
+
 #setup {
   max-width:550px;
   margin:30px auto;
@@ -423,7 +454,7 @@ h2 { font-size:20px }
 }
 .stock-status { font-weight:bold; color:var(--green) }
 .stock-status.low { color:#ffc66d }
-.stock-status.out { color:#ff7184 }
+.stock-status.out { color:var(--red) }
 .product-actions {
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -456,7 +487,7 @@ h2 { font-size:20px }
   header { padding:12px }
   header #userEmailDisplay {
     display:inline-block;
-    max-width:115px;
+    max-width:105px;
     overflow:hidden;
     text-overflow:ellipsis;
     vertical-align:middle;
@@ -493,8 +524,9 @@ h2 { font-size:20px }
 <header>
   <div class="logo">Stockeá<span>.</span></div>
   <div class="user-header-info">
-    <div id="headerAvatar" class="avatar-mini hidden" style="cursor:pointer" title="Ir a Perfil">👤</div>
+    <button id="headerLogout" class="secondary hidden" style="font-size:12px; padding:8px 10px;">🚪 Salir / Cambiar</button>
     <span id="userEmailDisplay" class="muted"></span>
+    <div id="headerAvatar" class="avatar-mini hidden" title="Ir a mi perfil">👤</div>
   </div>
 </header>
 
@@ -547,10 +579,6 @@ h2 { font-size:20px }
       <button id="homeCreateBtn" type="button">＋ Crear negocio</button>
       <button id="homeJoinBtn" class="secondary" type="button">⇄ Unirse a negocio</button>
     </div>
-
-    <div style="margin-top:25px; text-align:center;">
-      <button id="homeLogout" class="secondary" style="max-width:300px; width:100%;">🚪 Salir / Cambiar modo</button>
-    </div>
   </main>
 </div>
 
@@ -580,7 +608,7 @@ h2 { font-size:20px }
       <input id="owners" required placeholder="Nombre de los dueños">
     </div>
     <div class="field">
-      <label>Número de WhatsApp para pedidos (con código de país, ej: 5493794123456) *</label>
+      <label>Número de WhatsApp para pedidos (ej: 5493794123456) *</label>
       <input id="phone" required placeholder="5493794123456">
     </div>
     <div class="field">
@@ -657,9 +685,6 @@ h2 { font-size:20px }
     <button data-page="sales">↗ Ventas</button>
     <button data-page="settings">⚙ Mi negocio</button>
     <button data-page="profile">👤 Perfil</button>
-    <div style="margin-top:30px; border-top:1px solid var(--line); padding-top:15px">
-      <button type="button" id="navLogoutBtn" class="secondary" style="width:100%; font-size:12px; padding:8px">🚪 Salir / Cambiar</button>
-    </div>
   </nav>
 
   <main>
@@ -715,7 +740,10 @@ h2 { font-size:20px }
             <div class="field"><label>Código opcional</label><input id="pCode"></div>
             <div class="field full">
               <label>Foto opcional</label>
-              <input id="pImageFile" type="file" accept="image/*">
+              <div class="file-upload-wrapper">
+                <span class="file-upload-btn">📷 Seleccionar imagen de producto</span>
+                <input id="pImageFile" type="file" accept="image/*">
+              </div>
               <input id="pImage" type="hidden">
               <div id="imagePreview"></div>
             </div>
@@ -791,7 +819,10 @@ h2 { font-size:20px }
         <form id="profileForm">
           <div class="field">
             <label>Foto de perfil</label>
-            <input id="profileImageFile" type="file" accept="image/*">
+            <div class="file-upload-wrapper">
+              <span class="file-upload-btn">📷 Cambiar foto de perfil</span>
+              <input id="profileImageFile" type="file" accept="image/*">
+            </div>
             <input id="profileImageBase64" type="hidden">
           </div>
           <div class="field">
@@ -922,7 +953,7 @@ async function loadPublicCatalog(codeOrId) {
       bId = foundLocal.id;
       products = JSON.parse(localStorage.getItem(`stockea_local_products_${bId}`) || "[]");
     } else {
-      // 2. Si no está en local, buscar en Firebase
+      // 2. Si no está en local, buscar en Firebase (con reglas públicas permitidas)
       try {
         let snap = await db.collection("businesses").doc(codeOrId).get();
         if (snap.exists) {
@@ -942,7 +973,7 @@ async function loadPublicCatalog(codeOrId) {
           products = prodSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         }
       } catch (fbError) {
-        console.warn("No se pudo leer de Firestore:", fbError);
+        console.warn("Error leyendo de Firestore:", fbError);
       }
     }
 
@@ -1146,6 +1177,7 @@ $("backToModeSelect").onclick = () => {
   hide("authScreen");
   show("modeSelectScreen");
   hide("headerAvatar");
+  hide("headerLogout");
   setText("userEmailDisplay", "");
 };
 
@@ -1167,12 +1199,12 @@ const triggerLogout = async () => {
   hide("homeScreen");
   hide("authScreen");
   hide("headerAvatar");
+  hide("headerLogout");
   show("modeSelectScreen");
   setText("userEmailDisplay", "");
 };
 
-$("homeLogout").onclick = triggerLogout;
-$("navLogoutBtn").onclick = triggerLogout;
+$("headerLogout").onclick = triggerLogout;
 
 /* =========================
    MODO LOCAL (LOCALSTORAGE)
@@ -1180,6 +1212,7 @@ $("navLogoutBtn").onclick = triggerLogout;
 function initLocalMode() {
   $("tabJoinBiz").classList.add("hidden");
   loadLocalProfile();
+  show("headerLogout");
   showHome();
 }
 
@@ -1399,7 +1432,6 @@ document.querySelectorAll("nav [data-page]").forEach(button => {
 });
 
 $("headerAvatar").onclick = () => {
-  if (!currentBusinessId) return;
   document.querySelectorAll("nav [data-page]").forEach(item => {
     item.classList.toggle("active", item.dataset.page === "profile");
   });
@@ -1785,11 +1817,13 @@ auth.onAuthStateChanged(async user => {
     businessList = [];
     userProfile = { displayName: "", photoURL: "" };
     hide("headerAvatar");
+    hide("headerLogout");
     showAuth();
     return;
   }
 
   hide("authScreen");
+  show("headerLogout");
 
   try {
     const userRef = db.collection("users").doc(user.uid);
@@ -1918,13 +1952,13 @@ $("pImageFile").addEventListener("change", async event => {
   }
 
   try {
-    $("imagePreview").textContent = "Procesando imagen...";
+    $("imagePreviewinnerHTML", "Procesando imagen...");
     const imageData = await compressImage(file);
     $("pImage").value = imageData;
     $("imagePreview").innerHTML = `<img alt="Vista previa" src="${imageData}" style="display:block;max-width:160px;max-height:160px;object-fit:contain;margin-top:10px;border-radius:10px">`;
   } catch (error) {
     console.error(error);
-    $("imagePreview").textContent = "";
+    $("imagePreview").innerHTML = "";
     alert("No se pudo procesar la imagen.");
   }
 });
