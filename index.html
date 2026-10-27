@@ -93,6 +93,11 @@ input,select {
   color:var(--txt);
   border:1px solid var(--line);
 }
+input[type="color"] {
+  height: 48px;
+  padding: 4px;
+  cursor: pointer;
+}
 label {
   display:block;
   font-size:13px;
@@ -407,7 +412,7 @@ h2 { font-size:20px }
 .star-product-img img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .cart-floating-btn {
@@ -512,17 +517,19 @@ h2 { font-size:20px }
   transform:translateY(-2px);
 }
 .product-image {
-  height:155px;
-  background:var(--bg);
+  height:170px;
+  background:rgba(0,0,0,0.25);
   display:flex;
   align-items:center;
   justify-content:center;
   overflow:hidden;
+  padding:6px;
 }
 .product-image img {
   width:100%;
   height:100%;
-  object-fit:cover;
+  object-fit:contain;
+  border-radius:8px;
 }
 .product-placeholder { font-size:42px }
 .product-card-body { padding:12px; flex: 1; }
@@ -542,11 +549,12 @@ h2 { font-size:20px }
   margin-bottom:10px;
 }
 .product-color-dot {
-  width:13px;
-  height:13px;
+  width:14px;
+  height:14px;
   flex-shrink:0;
-  border:1px solid var(--line);
+  border:1px solid rgba(255,255,255,0.4);
   border-radius:50%;
+  box-shadow: 0 0 2px rgba(0,0,0,0.5);
 }
 .product-price {
   font-size:21px;
@@ -597,7 +605,7 @@ h2 { font-size:20px }
 .sale-item-thumb img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .sale {
@@ -633,7 +641,7 @@ h2 { font-size:20px }
   .formgrid .full { grid-column:auto }
   #addProductBtn { width:100% }
   #productList.product-grid, #publicProductList.product-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
-  .product-image { height:125px }
+  .product-image { height:140px }
   .product-card-body { padding:10px }
   .product-name { font-size:14px }
   .product-price { font-size:19px }
@@ -842,6 +850,7 @@ h2 { font-size:20px }
       <div class="panel"><h2>Stock bajo (≤ 3 unidades)</h2><div id="lowStock"></div></div>
     </section>
 
+    <!-- PANTALLA PRINCIPAL DE STOCK (LISTADO Y BUSCADOR) -->
     <section id="stock" class="hidden">
       <div class="sectionhead">
         <div>
@@ -851,8 +860,24 @@ h2 { font-size:20px }
         <button id="addProductBtn">+ Agregar producto</button>
       </div>
 
-      <div id="productFormPanel" class="panel hidden">
-        <h2 id="formTitle">Nuevo producto</h2>
+      <div class="toolbar">
+        <input id="search" placeholder="🔎 Buscar por nombre, modelo o código...">
+        <select id="filterCategory"><option value="">Todas las categorías</option></select>
+      </div>
+
+      <div id="productList" class="product-grid">
+        <div class="empty">No hay productos todavía.</div>
+      </div>
+    </section>
+
+    <!-- PANTALLA SEPARADA INDEPENDIENTE PARA CREAR O EDITAR UN PRODUCTO -->
+    <section id="productFormPanel" class="hidden">
+      <div class="sectionhead" style="margin-bottom:15px">
+        <button type="button" class="secondary" id="cancelProductBtn">← Volver al stock</button>
+        <h1 id="formTitle" style="margin:0">Nuevo producto</h1>
+      </div>
+
+      <div class="panel">
         <form id="productForm">
           <div class="formgrid">
             <div class="field"><label>Nombre del producto *</label><input id="pName" required placeholder="Ej: Funda Silicona, Cargador"></div>
@@ -867,8 +892,7 @@ h2 { font-size:20px }
               <input id="pModel" placeholder="Ej: iPhone 13, Samsung S23">
             </div>
 
-            <div class="field"><label>Color / detalle</label><input id="pColor" placeholder="Ej: Negro, Rojo, Transparente"></div>
-            <div class="field"><label>Color de referencia</label><input id="pColorCode" type="color" value="#568cff"></div>
+            <div class="field"><label>Seleccionar color</label><input id="pColorCode" type="color" value="#568cff"></div>
             <div class="field"><label>Costo por unidad ($)</label><input id="pCost" type="number" min="0" step=".01" required></div>
             <div class="field"><label>Precio de venta ($)</label><input id="pPrice" type="number" min=".01" step=".01" required></div>
             <div class="field"><label>Cantidad disponible</label><input id="pQty" type="number" min="0" step="1" required></div>
@@ -883,18 +907,8 @@ h2 { font-size:20px }
               <div id="imagePreview"></div>
             </div>
           </div>
-          <button type="submit">Guardar producto</button>
-          <button type="button" class="secondary" id="cancelProductBtn">Cancelar</button>
+          <button type="submit" style="width:100%; margin-top:15px">Guardar producto</button>
         </form>
-      </div>
-
-      <div class="toolbar">
-        <input id="search" placeholder="🔎 Buscar por nombre, modelo, color o código...">
-        <select id="filterCategory"><option value="">Todas las categorías</option></select>
-      </div>
-
-      <div id="productList" class="product-grid">
-        <div class="empty">No hay productos todavía.</div>
       </div>
     </section>
 
@@ -1201,7 +1215,7 @@ function renderPublicProducts() {
   const category = $("publicFilterCategory")?.value || "";
 
   const filtered = products.filter(product => {
-    const searchable = [product.name, product.model, product.color, product.category].join(" ").toLowerCase();
+    const searchable = [product.name, product.model, product.category].join(" ").toLowerCase();
     return searchable.includes(search) && (!category || product.category === category);
   });
 
@@ -1614,7 +1628,7 @@ document.querySelectorAll("nav [data-page]").forEach(button => {
       item.classList.toggle("active", item === button);
     });
 
-    ["dashboard", "stock", "sales", "settings", "profile"].forEach(id => {
+    ["dashboard", "stock", "productFormPanel", "sales", "settings", "profile"].forEach(id => {
       $(id).classList.toggle("hidden", id !== page);
     });
 
@@ -1629,7 +1643,7 @@ const openProfileView = () => {
   document.querySelectorAll("nav [data-page]").forEach(item => {
     item.classList.remove("active");
   });
-  ["dashboard", "stock", "sales", "settings", "profile"].forEach(id => {
+  ["dashboard", "stock", "productFormPanel", "sales", "settings", "profile"].forEach(id => {
     $(id).classList.toggle("hidden", id !== "profile");
   });
   loadProfileSection();
@@ -1867,7 +1881,7 @@ function setupBusinessUI() {
     button.classList.toggle("active", button.dataset.page === "dashboard");
   });
 
-  ["dashboard", "stock", "sales", "settings", "profile"].forEach(id => {
+  ["dashboard", "stock", "productFormPanel", "sales", "settings", "profile"].forEach(id => {
     $(id).classList.toggle("hidden", id !== "dashboard");
   });
 
@@ -2181,6 +2195,7 @@ function fillCategoryOptions() {
   }
 }
 
+/* NAVEGACIÓN Y APERTURA DE FORMULARIO DE PRODUCTO COMO PANTALLA SEPARADA */
 $("addProductBtn").onclick = () => {
   if (!currentBusinessId) return;
   editingProductId = null;
@@ -2192,12 +2207,16 @@ $("addProductBtn").onclick = () => {
 
   setText("formTitle", "Nuevo producto");
   fillCategoryOptions();
+  
+  hide("stock");
   show("productFormPanel");
+  window.scrollTo({ top: 0, behavior: "smooth" });
   $("pName").focus();
 };
 
 $("cancelProductBtn").onclick = () => {
   hide("productFormPanel");
+  show("stock");
   editingProductId = null;
 };
 
@@ -2253,7 +2272,6 @@ $("productForm").addEventListener("submit", async event => {
   const name = $("pName").value.trim();
   const category = $("pCategory").value.trim() || "General";
   const model = $("pModel").value.trim();
-  const color = $("pColor").value.trim();
   const colorCode = $("pColorCode").value || "#568cff";
   const cost = Number($("pCost").value);
   const price = Number($("pPrice").value);
@@ -2266,7 +2284,7 @@ $("productForm").addEventListener("submit", async event => {
 
   try {
     const data = {
-      name, category, model, color, colorCode, cost, price, quantity, code, image,
+      name, category, model, colorCode, cost, price, quantity, code, image,
       updatedAt: Date.now()
     };
 
@@ -2300,6 +2318,7 @@ $("productForm").addEventListener("submit", async event => {
       }
       await saveLocalProducts(currentBusinessId, products);
       hide("productFormPanel");
+      show("stock");
       editingProductId = null;
       $("productForm").reset();
       $("imagePreview").innerHTML = "";
@@ -2316,6 +2335,7 @@ $("productForm").addEventListener("submit", async event => {
         await collection.add(data);
       }
       hide("productFormPanel");
+      show("stock");
       editingProductId = null;
       $("productForm").reset();
       $("imagePreview").innerHTML = "";
@@ -2339,7 +2359,7 @@ function renderProducts() {
   const category = $("filterCategory")?.value || "";
 
   const filtered = products.filter(product => {
-    const searchable = [product.name, product.model, product.color, product.code, product.category].join(" ").toLowerCase();
+    const searchable = [product.name, product.model, product.code, product.category].join(" ").toLowerCase();
     return searchable.includes(search) && (!category || product.category === category);
   });
 
@@ -2360,11 +2380,10 @@ function renderProducts() {
         </div>
         <div class="product-card-body">
           <div class="product-name">${clean(product.name || "Producto")}</div>
-          ${product.color ? `
-            <div class="product-color">
-              <span class="product-color-dot" style="background:${product.colorCode || "#568cff"}"></span>
-              ${clean(product.color)}
-            </div>` : ""}
+          <div class="product-color">
+            <span class="product-color-dot" style="background:${product.colorCode || "#568cff"}"></span>
+            Color seleccionado
+          </div>
           <div class="product-price">${money(product.price)}</div>
           <div class="product-cost">Costo: ${money(product.cost)}</div>
           <div class="product-stock">
@@ -2396,7 +2415,6 @@ function editProduct(id) {
   $("pName").value = product.name || "";
   $("pCategory").value = product.category || "General";
   $("pModel").value = product.model || "";
-  $("pColor").value = product.color || "";
   $("pColorCode").value = product.colorCode || "#568cff";
   $("pCost").value = Number(product.cost) || 0;
   $("pPrice").value = Number(product.price) || 0;
@@ -2406,8 +2424,10 @@ function editProduct(id) {
 
   $("imagePreview").innerHTML = product.image ? `<img src="${product.image}" style="max-width:160px;max-height:160px;object-fit:cover;margin-top:10px;border-radius:10px">` : "";
   setText("formTitle", "Editar producto");
+  
+  hide("stock");
   show("productFormPanel");
-  $("productFormPanel").scrollIntoView({ behavior: "smooth" });
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 async function deleteProduct(id) {
