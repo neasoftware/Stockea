@@ -6,7 +6,7 @@
 <title>Stockeá — Gestión de negocios</title>
 
 <!-- MANIFIESTO PWA INTEGRADO PARA PERMITIR INSTALACIÓN -->
-<link rel="manifest" href='data:application/manifest+json,{"name":"Stockeá","short_name":"Stockeá","start_url":".","display":"standalone","background_color":"#0b1020","theme_color":"#568cff","icons":[{"src":"data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23568cff%22><path d=%22M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z%22/></svg>","sizes":"192x192","type":"image/svg+xml"}]}'>
+<link rel="manifest" href='data:application/manifest+json,{"name":"Stockeá","short_name":"Stockeá","start_url":".","display":"standalone","background_color":"#f3f4f6","theme_color":"#2563eb","icons":[{"src":"data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%232563eb%22><path d=%22M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z%22/></svg>","sizes":"192x192","type":"image/svg+xml"}]}'>
 
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
@@ -14,26 +14,16 @@
 
 <style>
 :root {
-  --bg:#0b1020;
-  --panel:#141d31;
-  --line:#293650;
-  --blue:#568cff;
-  --txt:#f2f5ff;
-  --muted:#95a3bd;
-  --green:#35d49a;
-  --red:#ff7184;
+  --bg:#f3f4f6;
+  --panel:#ffffff;
+  --line:#e5e7eb;
+  --blue:#2563eb;
+  --txt:#1f2937;
+  --muted:#6b7280;
+  --green:#10b981;
+  --red:#ef4444;
 }
 
-body.theme-oscuro {
-  --bg: #0b1020;
-  --panel: #141d31;
-  --line: #293650;
-  --blue: #568cff;
-  --txt: #f2f5ff;
-  --muted: #95a3bd;
-  --green: #35d49a;
-  --red: #ff7184;
-}
 body.theme-claro {
   --bg: #f3f4f6;
   --panel: #ffffff;
@@ -43,6 +33,16 @@ body.theme-claro {
   --muted: #6b7280;
   --green: #10b981;
   --red: #ef4444;
+}
+body.theme-oscuro {
+  --bg: #0b1020;
+  --panel: #141d31;
+  --line: #293650;
+  --blue: #568cff;
+  --txt: #f2f5ff;
+  --muted: #95a3bd;
+  --green: #35d49a;
+  --red: #ff7184;
 }
 body.theme-violeta {
   --bg: #0f0a1c;
@@ -117,12 +117,23 @@ header {
   background:var(--panel);
   gap:10px;
 }
-.logo {
-  font-size:24px;
-  font-weight:900;
-  color:var(--blue);
+.logo-container {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
 }
-.logo span { color:var(--txt) }
+.header-logo-img {
+  height: 28px;
+  width: auto;
+  object-fit: contain;
+  vertical-align: middle;
+}
+.header-by-text {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
 .user-header-info {
   display:flex;
   align-items:center;
@@ -369,28 +380,32 @@ h2 { font-size:20px }
 }
 
 .theme-selector {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
+  display: flex;
+  gap: 15px;
+  justify-content: center;
   margin-top: 15px;
 }
-.theme-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px;
-  border-radius: 10px;
-  border: 1px solid var(--line);
-  background: var(--bg);
-  color: var(--txt);
+.theme-circle {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 2px solid var(--line);
   cursor: pointer;
-  font-size: 13px;
-  justify-content: center;
+  transition: transform .2s, border-color .2s, box-shadow .2s;
+  padding: 0;
 }
-.theme-btn.active {
+.theme-circle:hover {
+  transform: scale(1.1);
+}
+.theme-circle.active {
   border-color: var(--blue);
-  box-shadow: 0 0 10px rgba(86, 140, 255, 0.3);
+  box-shadow: 0 0 12px var(--blue);
+  transform: scale(1.1);
 }
+.theme-circle[data-theme="claro"] { background: #ffffff; }
+.theme-circle[data-theme="oscuro"] { background: #0b1020; }
+.theme-circle[data-theme="violeta"] { background: #0f0a1c; }
+.theme-circle[data-theme="verde"] { background: #06110a; }
 
 .star-product-card {
   display: flex;
@@ -657,7 +672,10 @@ h2 { font-size:20px }
 
 <body>
 <header>
-  <div class="logo">Stockeá<span>.</span></div>
+  <div class="logo-container">
+    <img src="stockea-logo.png" alt="Stockeá" class="header-logo-img">
+    <span class="header-by-text">by NEA Software</span>
+  </div>
   <div class="user-header-info">
     <button id="headerLogout" class="secondary hidden" style="font-size:12px; padding:8px 10px;">🚪 Salir</button>
     <div id="headerAvatar" class="avatar-mini hidden" title="Ir a mi perfil">
@@ -668,7 +686,7 @@ h2 { font-size:20px }
 
 <!-- SELECCIÓN DE MODO (NUBE VS LOCAL) -->
 <div id="modeSelectScreen" class="auth-box panel" style="text-align:center">
-  <div class="logo" style="margin-bottom:15px">Stockeá<span>.</span></div>
+  <div style="margin-bottom:15px"><img src="stockea-logo.png" alt="Stockeá" style="height:38px; width:auto;"></div>
   <p class="sub" style="margin-bottom:20px">Elegí cómo querés usar la aplicación:</p>
   <button id="btnCloudMode" type="button" style="width:100%; margin-bottom:12px">☁️ Modo Nube (Firebase)</button>
   <button id="btnLocalMode" type="button" class="secondary" style="width:100%">💾 Modo Local (Este dispositivo)</button>
@@ -676,7 +694,7 @@ h2 { font-size:20px }
 
 <!-- INICIO DE SESIÓN (NUBE) -->
 <div id="authScreen" class="auth-box panel hidden">
-  <div class="logo" style="text-align:center;margin-bottom:20px">Stockeá<span>. (Nube)</span></div>
+  <div style="text-align:center;margin-bottom:20px"><img src="stockea-logo.png" alt="Stockeá" style="height:35px; width:auto;"> <span style="font-size:14px;" class="sub">(Nube)</span></div>
   <div class="tabs">
     <button id="tabLogin" class="active" type="button">Ingresar</button>
     <button id="tabRegister" type="button">Crear cuenta</button>
@@ -722,8 +740,8 @@ h2 { font-size:20px }
 <div id="setup" class="panel hidden">
   <div class="sectionhead">
     <div>
-      <div class="logo">Stockeá<span>.</span></div>
-      <h1 style="margin-top:22px">Tu negocio</h1>
+      <img src="stockea-logo.png" alt="Stockeá" style="height:32px; width:auto; margin-bottom: 10px;">
+      <h1 style="margin-top:10px">Tu negocio</h1>
       <p class="sub">Creá tu emprendimiento o unite al de tu socio.</p>
     </div>
     <button id="backSetupHome" type="button" class="secondary">← Volver al inicio</button>
@@ -1022,10 +1040,10 @@ h2 { font-size:20px }
           <h3 style="margin: 0 0 5px; font-size: 16px;">⚙️ Configuración</h3>
           <p class="sub" style="font-size: 12px; margin-bottom: 12px;">Personalización de Tema:</p>
           <div class="theme-selector">
-            <button type="button" class="theme-btn" data-theme="oscuro">🔵 Azul Noche (Oscuro)</button>
-            <button type="button" class="theme-btn" data-theme="claro">☀️ Claro</button>
-            <button type="button" class="theme-btn" data-theme="violeta">🟣 Púrpura Neón</button>
-            <button type="button" class="theme-btn" data-theme="verde">🌿 Verde NEA</button>
+            <button type="button" class="theme-circle" data-theme="claro" title="Modo Claro"></button>
+            <button type="button" class="theme-circle" data-theme="oscuro" title="Azul Noche"></button>
+            <button type="button" class="theme-circle" data-theme="violeta" title="Púrpura Neón"></button>
+            <button type="button" class="theme-circle" data-theme="verde" title="Verde NEA"></button>
           </div>
         </div>
       </div>
@@ -1058,7 +1076,7 @@ const db = firebase.firestore();
 ========================= */
 let appMode = null; 
 let currentUser = null;
-let userProfile = { displayName: "", photoURL: "", theme: "oscuro" };
+let userProfile = { displayName: "", photoURL: "", theme: "claro" };
 let currentBusiness = null;
 let currentBusinessId = null;
 let products = [];
@@ -1121,16 +1139,16 @@ function clearListeners() {
 ========================= */
 function applyTheme(themeName) {
   document.body.className = "";
-  const validTheme = themeName && ["oscuro", "claro", "violeta", "verde"].includes(themeName) ? themeName : "oscuro";
+  const validTheme = themeName && ["oscuro", "claro", "violeta", "verde"].includes(themeName) ? themeName : "claro";
   document.body.classList.add(`theme-${validTheme}`);
   userProfile.theme = validTheme;
 
-  document.querySelectorAll(".theme-btn").forEach(btn => {
+  document.querySelectorAll(".theme-circle").forEach(btn => {
     btn.classList.toggle("active", btn.dataset.theme === validTheme);
   });
 }
 
-document.querySelectorAll(".theme-btn").forEach(btn => {
+document.querySelectorAll(".theme-circle").forEach(btn => {
   btn.onclick = async () => {
     const newTheme = btn.dataset.theme;
     applyTheme(newTheme);
@@ -1161,6 +1179,8 @@ window.addEventListener("DOMContentLoaded", async () => {
     hide("headerAvatar");
     hide("headerLogout");
     await loadPublicCatalog(catalogCode);
+  } else {
+    applyTheme("claro");
   }
 });
 
@@ -1420,7 +1440,7 @@ const triggerLogout = async () => {
   products = [];
   sales = [];
   businessList = [];
-  userProfile = { displayName: "", photoURL: "", theme: "oscuro" };
+  userProfile = { displayName: "", photoURL: "", theme: "claro" };
   hide("app");
   hide("setup");
   hide("homeScreen");
@@ -1445,7 +1465,7 @@ function initLocalMode() {
 
 function loadLocalProfile() {
   const data = localStorage.getItem("stockea_local_profile");
-  const savedTheme = localStorage.getItem("stockea_local_theme") || "oscuro";
+  const savedTheme = localStorage.getItem("stockea_local_theme") || "claro";
   if (data) {
     userProfile = JSON.parse(data);
     if (!userProfile.theme) userProfile.theme = savedTheme;
@@ -1998,7 +2018,7 @@ $("profileForm").addEventListener("submit", async event => {
         displayName,
         photoURL,
         email: currentUser.email,
-        theme: userProfile.theme || "oscuro"
+        theme: userProfile.theme || "claro"
       }, { merge: true });
 
       updateUIProfile();
@@ -2127,14 +2147,14 @@ auth.onAuthStateChanged(async user => {
     const userRef = db.collection("users").doc(user.uid);
     let userSnap = await userRef.get();
     if (!userSnap.exists) {
-      await userRef.set({ email: user.email || "", businessIds: [], theme: "oscuro" }, { merge: true });
-      userProfile = { displayName: "", photoURL: "", theme: "oscuro" };
+      await userRef.set({ email: user.email || "", businessIds: [], theme: "claro" }, { merge: true });
+      userProfile = { displayName: "", photoURL: "", theme: "claro" };
     } else {
       const uData = userSnap.data();
       userProfile = {
         displayName: uData.displayName || "",
         photoURL: uData.photoURL || "",
-        theme: uData.theme || "oscuro"
+        theme: uData.theme || "claro"
       };
     }
 
