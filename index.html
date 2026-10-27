@@ -1402,6 +1402,7 @@ function initLocalMode() {
   $("tabJoinBiz").classList.add("hidden");
   loadLocalProfile();
   show("headerLogout");
+  show("headerAvatar");
   showHome();
 }
 
@@ -2083,6 +2084,7 @@ auth.onAuthStateChanged(async user => {
   hide("authScreen");
   hide("modeSelectScreen");
   show("headerLogout");
+  show("headerAvatar");
 
   try {
     const userRef = db.collection("users").doc(user.uid);
