@@ -423,13 +423,21 @@ h2 { font-size:20px }
   <div class="logo">Stockeá<span>.</span></div>
   <div>
     <span id="userEmailDisplay" class="muted"></span>
-    <button id="headerLogout" class="secondary hidden">Salir</button>
+    <button id="headerLogout" class="secondary hidden">Cambiar modo / Salir</button>
   </div>
 </header>
 
-<!-- INICIO DE SESIÓN -->
-<div id="authScreen" class="auth-box panel">
-  <div class="logo" style="text-align:center;margin-bottom:20px">Stockeá<span>.</span></div>
+<!-- SELECCIÓN DE MODO (NUBE VS LOCAL) -->
+<div id="modeSelectScreen" class="auth-box panel" style="text-align:center">
+  <div class="logo" style="margin-bottom:15px">Stockeá<span>.</span></div>
+  <p class="sub" style="margin-bottom:20px">Elegí cómo querés usar la aplicación:</p>
+  <button id="btnCloudMode" type="button" style="width:100%; margin-bottom:12px">☁️ Modo Nube (Firebase)</button>
+  <button id="btnLocalMode" type="button" class="secondary" style="width:100%">💾 Modo Local (Este dispositivo)</button>
+</div>
+
+<!-- INICIO DE SESIÓN (NUBE) -->
+<div id="authScreen" class="auth-box panel hidden">
+  <div class="logo" style="text-align:center;margin-bottom:20px">Stockeá<span>. (Nube)</span></div>
   <div class="tabs">
     <button id="tabLogin" class="active" type="button">Ingresar</button>
     <button id="tabRegister" type="button">Crear cuenta</button>
@@ -445,6 +453,7 @@ h2 { font-size:20px }
     </div>
     <button id="authSubmitBtn" type="submit">Iniciar sesión</button>
   </form>
+  <button type="button" class="secondary" id="backToModeSelect" style="width:100%; margin-top:10px">← Volver</button>
   <p id="authError" class="hidden" style="color:var(--red);margin-top:10px;text-align:center"></p>
 </div>
 
@@ -453,7 +462,7 @@ h2 { font-size:20px }
   <main>
     <div class="home-title">
       <div>
-        <h1>Inicio</h1>
+        <h1 id="homeTitleText">Inicio</h1>
         <p class="sub">Administrá todos tus negocios desde un solo lugar.</p>
       </div>
     </div>
@@ -481,7 +490,7 @@ h2 { font-size:20px }
     <button id="backSetupHome" type="button" class="secondary">← Volver a Home</button>
   </div>
 
-  <div class="tabs">
+  <div class="tabs" id="setupTabsContainer">
     <button id="tabCreateBiz" class="active" type="button">Crear negocio</button>
     <button id="tabJoinBiz" type="button">Unirse con código</button>
   </div>
@@ -608,17 +617,19 @@ h2 { font-size:20px }
 
     <section id="sales" class="hidden">
       <h1>Ventas</h1>
-      <p class="sub">Historial compartido del negocio.</p>
+      <p class="sub">Historial del negocio.</p>
       <div class="panel"><h2>Registro de ventas</h2><div id="allSales"></div></div>
     </section>
 
     <section id="settings" class="hidden">
       <h1>Mi negocio</h1>
-      <p class="sub">Datos y código para invitar socios.</p>
+      <p class="sub">Datos del emprendimiento.</p>
       <div class="panel">
-        <p><b>Código para compartir:</b></p>
-        <div id="displayStoreCode" class="codebox">—</div>
-        <button id="copyStoreCode" class="secondary" style="margin-top:10px">Copiar código</button>
+        <div id="codeSectionContainer">
+          <p><b>Código para compartir:</b></p>
+          <div id="displayStoreCode" class="codebox">—</div>
+          <button id="copyStoreCode" class="secondary" style="margin-top:10px">Copiar código</button>
+        </div>
 
         <form id="settingsForm" style="margin-top:20px">
           <div class="field"><label>Nombre del negocio</label><input id="editBiz" required></div>
@@ -639,7 +650,7 @@ h2 { font-size:20px }
       </div>
     </section>
 
-    <p class="notice">Stockeá — Gestión compartida en la nube.</p>
+    <p class="notice">Stockeá — Gestión compartida en la nube y local.</p>
   </main>
 </div>
 
@@ -658,13 +669,13 @@ const firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
-
 const auth = firebase.auth();
 const db = firebase.firestore();
 
 /* =========================
    ESTADO DE LA APLICACIÓN
 ========================= */
+let appMode = null; // 'cloud' o 'local'
 let currentUser = null;
 let currentBusiness = null;
 let currentBusinessId = null;
@@ -695,11 +706,7 @@ function money(value) {
 
 function clean(value) {
   return String(value ?? "").replace(/[&<>"']/g, char => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
   })[char]);
 }
 
@@ -726,15 +733,91 @@ function clearListeners() {
   salesUnsubscribe = null;
 }
 
-function showAuth() {
-  hide("homeScreen");
-  hide("setup");
-  hide("app");
+/* =========================
+   SELECTOR DE MODO INICIAL
+========================= */
+$("btnCloudMode").onclick = () => {
+  appMode = "cloud";
+  hide("modeSelectScreen");
   show("authScreen");
+  show("headerLogout");
+  setText("userEmailDisplay", "Modo Nube");
+};
+
+$("btnLocalMode").onclick = () => {
+  appMode = "local";
+  hide("modeSelectScreen");
+  hide("authScreen");
+  show("headerLogout");
+  setText("userEmailDisplay", "Modo Local");
+  initLocalMode();
+};
+
+$("backToModeSelect").onclick = () => {
+  hide("authScreen");
+  show("modeSelectScreen");
+  hide("headerLogout");
+  setText("userEmailDisplay", "");
+};
+
+$("headerLogout").onclick = async () => {
+  clearListeners();
+  if (appMode === "cloud") {
+    try { await auth.signOut(); } catch(e){}
+  }
+  appMode = null;
+  currentBusiness = null;
+  currentBusinessId = null;
+  products = [];
+  sales = [];
+  businessList = [];
+  hide("app");
+  hide("setup");
+  hide("homeScreen");
+  hide("authScreen");
+  show("modeSelectScreen");
+  hide("headerLogout");
+  setText("userEmailDisplay", "");
+};
+
+/* =========================
+   MODO LOCAL (LOCALSTORAGE)
+========================= */
+function initLocalMode() {
+  // Ocultar opción unirse con código en local
+  $("tabJoinBiz").classList.add("hidden");
+  showHome();
+}
+
+async function getLocalBusinesses() {
+  const data = localStorage.getItem("stockea_local_businesses");
+  return data ? JSON.parse(data) : [];
+}
+
+async function saveLocalBusinesses(list) {
+  localStorage.setItem("stockea_local_businesses", JSON.stringify(list));
+}
+
+async function getLocalProducts(bId) {
+  const data = localStorage.getItem(`stockea_local_products_${bId}`);
+  return data ? JSON.parse(data) : [];
+}
+
+async function saveLocalProducts(bId, list) {
+  localStorage.setItem(`stockea_local_products_${bId}`, JSON.stringify(list));
+}
+
+async function getLocalSales(bId) {
+  const data = localStorage.getItem(`stockea_local_sales_${bId}`);
+  return data ? JSON.parse(data) : [];
+}
+
+async function saveLocalSales(bId, list) {
+  localStorage.setItem(`stockea_local_sales_${bId}`, JSON.stringify(list));
 }
 
 /* =========================
-   AUTENTICACIÓN
+   AUTENTICACIÓN NUBE
 ========================= */
 $("tabLogin").onclick = () => setAuthMode("login");
 $("tabRegister").onclick = () => setAuthMode("register");
@@ -793,16 +876,18 @@ function showHome() {
   renderBusinessList();
 }
 
-function renderBusinessList() {
+async function renderBusinessList() {
   const container = $("businessList");
   if (!container) return;
+
+  await refreshBusinessList();
 
   if (!businessList.length) {
     container.innerHTML = `
       <div class="panel empty" style="grid-column:1/-1">
         <div style="font-size:38px">🏪</div>
         <h3>Todavía no tenés negocios</h3>
-        <p>Creá uno nuevo o unite al negocio de otra persona.</p>
+        <p>Creá uno nuevo${appMode === 'cloud' ? ' o unite al negocio de otra persona' : ''}.</p>
       </div>`;
     return;
   }
@@ -834,22 +919,22 @@ function renderBusinessList() {
 }
 
 async function refreshBusinessList() {
-  if (!currentUser) return;
+  if (appMode === "local") {
+    businessList = await getLocalBusinesses();
+    return;
+  }
 
+  if (!currentUser) return;
   const userRef = db.collection("users").doc(currentUser.uid);
   const userSnap = await userRef.get();
-
   const ids = userSnap.exists ? (userSnap.data().businessIds || []) : [];
   businessList = [];
 
   for (const id of ids) {
     const snap = await db.collection("businesses").doc(id).get();
     if (!snap.exists) continue;
-
     const data = snap.data();
-    const members = data.memberUids || [];
-
-    if (members.includes(currentUser.uid)) {
+    if ((data.memberUids || []).includes(currentUser.uid)) {
       businessList.push({ id: snap.id, ...data });
     }
   }
@@ -862,6 +947,10 @@ $("homeCreateBtn").onclick = () => {
 };
 
 $("homeJoinBtn").onclick = () => {
+  if (appMode === "local") {
+    alert("El modo local no utiliza códigos de invitación compartidos.");
+    return;
+  }
   hide("homeScreen");
   show("setup");
   setBusinessMode("join");
@@ -925,11 +1014,6 @@ $("createBizForm").addEventListener("submit", async event => {
   event.preventDefault();
   clearError("setupError");
 
-  if (!currentUser) {
-    showError("setupError", "Iniciá sesión primero.");
-    return;
-  }
-
   const name = $("bizName").value.trim();
   const owners = $("owners").value.trim();
   const type = $("businessType").value;
@@ -944,6 +1028,30 @@ $("createBizForm").addEventListener("submit", async event => {
   button.disabled = true;
 
   try {
+    if (appMode === "local") {
+      const list = await getLocalBusinesses();
+      const newId = "local_" + Date.now();
+      const newBiz = {
+        id: newId,
+        name, owners, type, categories,
+        accessCode: "LOCAL",
+        createdAt: Date.now()
+      };
+      list.push(newBiz);
+      await saveLocalBusinesses(list);
+      await refreshBusinessList();
+      showHome();
+      alert("¡Negocio local creado!");
+      $("createBizForm").reset();
+      return;
+    }
+
+    // Modo nube
+    if (!currentUser) {
+      showError("setupError", "Iniciá sesión primero.");
+      return;
+    }
+
     const userRef = db.collection("users").doc(currentUser.uid);
     const code = randomCode();
     const businessRef = db.collection("businesses").doc();
@@ -969,21 +1077,20 @@ $("createBizForm").addEventListener("submit", async event => {
     });
 
     await batch.commit();
-
     await refreshBusinessList();
     showHome();
-    alert("¡Negocio creado! Ya aparece en tu Home.");
+    alert("¡Negocio creado en la nube!");
     $("createBizForm").reset();
   } catch (error) {
     console.error(error);
-    showError("setupError", "No se pudo crear el negocio. Revisá las reglas de Firestore.");
+    showError("setupError", "No se pudo crear el negocio.");
   } finally {
     button.disabled = false;
   }
 });
 
 /* =========================
-   UNIRSE A UN NEGOCIO
+   UNIRSE A UN NEGOCIO (NUBE)
 ========================= */
 $("joinBizForm").addEventListener("submit", async event => {
   event.preventDefault();
@@ -1005,7 +1112,6 @@ $("joinBizForm").addEventListener("submit", async event => {
 
   try {
     const invitationSnap = await db.collection("invitaciones").doc(code).get();
-
     if (!invitationSnap.exists) throw new Error("El código no existe o ya no es válido.");
     const businessId = invitationSnap.data().businessId;
 
@@ -1029,7 +1135,7 @@ $("joinBizForm").addEventListener("submit", async event => {
     await refreshBusinessList();
     showHome();
     $("joinBizForm").reset();
-    alert("¡Te uniste al negocio! Ya aparece en tu Home.");
+    alert("¡Te uniste al negocio!");
   } catch (error) {
     console.error(error);
     showError("setupError", error.message || "No se pudo unir al negocio.");
@@ -1042,12 +1148,26 @@ $("joinBizForm").addEventListener("submit", async event => {
    ABRIR UN NEGOCIO
 ========================= */
 async function openBusiness(id) {
+  if (appMode === "local") {
+    const list = await getLocalBusinesses();
+    const found = list.find(b => b.id === id);
+    if (!found) throw new Error("Negocio no encontrado.");
+
+    currentBusinessId = id;
+    currentBusiness = found;
+    products = await getLocalProducts(id);
+    sales = await getLocalSales(id);
+
+    setupBusinessUI();
+    return;
+  }
+
+  // Modo nube
   if (!currentUser) throw new Error("Iniciá sesión primero.");
   clearListeners();
 
   const businessRef = db.collection("businesses").doc(id);
   const snap = await businessRef.get();
-
   if (!snap.exists) throw new Error("El negocio ya no existe.");
 
   const data = snap.data();
@@ -1060,6 +1180,11 @@ async function openBusiness(id) {
   products = [];
   sales = [];
 
+  setupBusinessUI();
+  startBusinessListeners();
+}
+
+function setupBusinessUI() {
   hide("authScreen");
   hide("setup");
   hide("homeScreen");
@@ -1067,7 +1192,13 @@ async function openBusiness(id) {
 
   setText("welcome", currentBusiness.name || "Mi negocio");
   setText("storeSubInfo", currentBusiness.type || "Panel general");
-  setText("displayStoreCode", currentBusiness.accessCode || "—");
+  
+  if (appMode === "local") {
+    $("codeSectionContainer").classList.add("hidden");
+  } else {
+    $("codeSectionContainer").classList.remove("hidden");
+    setText("displayStoreCode", currentBusiness.accessCode || "—");
+  }
 
   $("editBiz").value = currentBusiness.name || "";
   $("editOwners").value = currentBusiness.owners || "";
@@ -1075,7 +1206,6 @@ async function openBusiness(id) {
   $("editCategories").value = (currentBusiness.categories || []).join(", ");
 
   fillCategoryOptions();
-  startBusinessListeners();
 
   document.querySelectorAll("nav [data-page]").forEach(button => {
     button.classList.toggle("active", button.dataset.page === "dashboard");
@@ -1089,9 +1219,10 @@ async function openBusiness(id) {
 }
 
 /* =========================
-   CARGA AUTOMÁTICA DE CUENTA
+   AUTENTICACIÓN INICIAL (NUBE)
 ========================= */
 auth.onAuthStateChanged(async user => {
+  if (appMode !== "cloud") return;
   currentUser = user;
   clearListeners();
 
@@ -1106,23 +1237,18 @@ auth.onAuthStateChanged(async user => {
     sales = [];
     businessList = [];
     showAuth();
-    hide("headerLogout");
-    setText("userEmailDisplay", "");
     return;
   }
 
   hide("authScreen");
-  show("headerLogout");
-  setText("userEmailDisplay", user.email || "");
+  setText("userEmailDisplay", user.email || "Modo Nube");
 
   try {
     const userRef = db.collection("users").doc(user.uid);
     let userSnap = await userRef.get();
-
     if (!userSnap.exists) {
       await userRef.set({ email: user.email || "", businessIds: [] }, { merge: true });
     }
-
     await refreshBusinessList();
     showHome();
   } catch (error) {
@@ -1131,15 +1257,18 @@ auth.onAuthStateChanged(async user => {
   }
 });
 
-$("headerLogout").onclick = async () => {
-  clearListeners();
-  try { await auth.signOut(); } catch (error) { console.error(error); }
-};
+function showAuth() {
+  hide("homeScreen");
+  hide("setup");
+  hide("app");
+  show("authScreen");
+}
 
 /* =========================
-   ESCUCHAR CAMBIOS EN TIEMPO REAL
+   ESCUCHAR CAMBIOS EN TIEMPO REAL (NUBE) O LOCAL
 ========================= */
 function startBusinessListeners() {
+  if (appMode === "local") return; // En local se actualiza manualmente
   if (!currentBusinessId) return;
   clearListeners();
 
@@ -1269,8 +1398,7 @@ function compressImage(file) {
 
 $("productForm").addEventListener("submit", async event => {
   event.preventDefault();
-
-  if (!currentBusinessId || !currentUser) return;
+  if (!currentBusinessId) return;
 
   const name = $("pName").value.trim();
   const category = $("pCategory").value || "General";
@@ -1286,23 +1414,45 @@ $("productForm").addEventListener("submit", async event => {
   submitButton.disabled = true;
 
   try {
-    const collection = db.collection("businesses").doc(currentBusinessId).collection("products");
     const data = {
       name, category, color, colorCode, cost, price, quantity, code, image,
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      updatedAt: Date.now()
     };
 
-    if (editingProductId) {
-      await collection.doc(editingProductId).update(data);
+    if (appMode === "local") {
+      products = await getLocalProducts(currentBusinessId);
+      if (editingProductId) {
+        const index = products.findIndex(p => p.id === editingProductId);
+        if (index !== -1) {
+          products[index] = { ...products[index], ...data };
+        }
+      } else {
+        data.id = "prod_" + Date.now();
+        data.createdAt = Date.now();
+        products.push(data);
+      }
+      await saveLocalProducts(currentBusinessId, products);
+      hide("productFormPanel");
+      editingProductId = null;
+      $("productForm").reset();
+      $("imagePreview").innerHTML = "";
+      fillCategoryOptions();
+      renderProducts();
+      renderDashboard();
     } else {
-      data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-      await collection.add(data);
+      const collection = db.collection("businesses").doc(currentBusinessId).collection("products");
+      data.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
+      if (editingProductId) {
+        await collection.doc(editingProductId).update(data);
+      } else {
+        data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+        await collection.add(data);
+      }
+      hide("productFormPanel");
+      editingProductId = null;
+      $("productForm").reset();
+      $("imagePreview").innerHTML = "";
     }
-
-    hide("productFormPanel");
-    editingProductId = null;
-    $("productForm").reset();
-    $("imagePreview").innerHTML = "";
   } catch (error) {
     console.error(error);
     alert("No se pudo guardar el producto.");
@@ -1398,7 +1548,15 @@ async function deleteProduct(id) {
   if (!product || !confirm(`¿Eliminar "${product.name}" del stock?`)) return;
 
   try {
-    await db.collection("businesses").doc(currentBusinessId).collection("products").doc(id).delete();
+    if (appMode === "local") {
+      products = products.filter(p => p.id !== id);
+      await saveLocalProducts(currentBusinessId, products);
+      fillCategoryOptions();
+      renderProducts();
+      renderDashboard();
+    } else {
+      await db.collection("businesses").doc(currentBusinessId).collection("products").doc(id).delete();
+    }
   } catch (error) {
     console.error(error);
     alert("No se pudo eliminar el producto.");
@@ -1421,6 +1579,33 @@ async function sellProduct(id) {
   }
 
   try {
+    if (appMode === "local") {
+      product.quantity -= quantity;
+      await saveLocalProducts(currentBusinessId, products);
+
+      sales = await getLocalSales(currentBusinessId);
+      const newSale = {
+        id: "sale_" + Date.now(),
+        productId: id,
+        productName: product.name || "Producto",
+        quantity,
+        unitPrice: product.price || 0,
+        unitCost: product.cost || 0,
+        total: (product.price || 0) * quantity,
+        profit: ((product.price || 0) - (product.cost || 0)) * quantity,
+        createdAt: Date.now()
+      };
+      sales.unshift(newSale);
+      await saveLocalSales(currentBusinessId, sales);
+
+      renderSales();
+      renderProducts();
+      renderDashboard();
+      alert("¡Venta registrada localmente!");
+      return;
+    }
+
+    // Modo nube transaccional
     const productRef = db.collection("businesses").doc(currentBusinessId).collection("products").doc(id);
     const saleRef = db.collection("businesses").doc(currentBusinessId).collection("sales").doc();
 
@@ -1578,12 +1763,22 @@ $("settingsForm").addEventListener("submit", async event => {
   const categories = $("editCategories").value.split(",").map(v => v.trim()).filter(Boolean);
 
   try {
-    await db.collection("businesses").doc(currentBusinessId).update({
-      name, owners, type, categories,
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
+    if (appMode === "local") {
+      const list = await getLocalBusinesses();
+      const index = list.findIndex(b => b.id === currentBusinessId);
+      if (index !== -1) {
+        list[index] = { ...list[index], name, owners, type, categories };
+        await saveLocalBusinesses(list);
+        currentBusiness = list[index];
+      }
+    } else {
+      await db.collection("businesses").doc(currentBusinessId).update({
+        name, owners, type, categories,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      currentBusiness = { ...currentBusiness, name, owners, type, categories };
+    }
 
-    currentBusiness = { ...currentBusiness, name, owners, type, categories };
     setText("welcome", name);
     setText("storeSubInfo", type);
     fillCategoryOptions();
