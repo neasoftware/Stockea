@@ -2320,7 +2320,7 @@ $("clientForm").addEventListener("submit", async event => {
       hide("clientModal");
       renderClients();
     } else {
-      data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+      data.createdAt = Date.now();
       await db.collection("businesses").doc(currentBusinessId).collection("clients").add(data);
       hide("clientModal");
     }
