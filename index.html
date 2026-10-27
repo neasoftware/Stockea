@@ -334,6 +334,25 @@ h2 { font-size:20px }
   object-fit:cover;
 }
 
+.business-logo-preview {
+  width: 90px;
+  height: 90px;
+  border-radius: 14px;
+  background: #0c1426;
+  border: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  overflow: hidden;
+  margin: 10px 0;
+}
+.business-logo-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .theme-selector {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -444,6 +463,12 @@ h2 { font-size:20px }
   border-radius:12px;
   font-size:25px;
   margin-bottom:14px;
+  overflow: hidden;
+}
+.business-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 .business-card h3 { margin:0 0 7px; overflow-wrap:anywhere; }
 .business-card p { color:var(--muted); font-size:13px; min-height:32px; }
@@ -456,7 +481,7 @@ h2 { font-size:20px }
 }
 .home-actions button { min-height:48px }
 
-#productList.product-grid {
+#productList.product-grid, #publicProductList.product-grid {
   display:grid;
   grid-template-columns:repeat(4,minmax(0,1fr));
   gap:14px;
@@ -471,6 +496,9 @@ h2 { font-size:20px }
   border:1px solid var(--line);
   border-radius:15px;
   transition:border-color .2s,transform .2s;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 .product-card:hover {
   border-color:var(--blue);
@@ -491,7 +519,7 @@ h2 { font-size:20px }
   padding:8px;
 }
 .product-placeholder { font-size:42px }
-.product-card-body { padding:12px }
+.product-card-body { padding:12px; flex: 1; }
 .product-category {
   color:var(--muted);
   font-size:11px;
@@ -567,7 +595,7 @@ h2 { font-size:20px }
 .sale-actions { display:flex; align-items:center; gap:10px; margin-left:auto; }
 
 @media(max-width:950px) {
-  #productList.product-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  #productList.product-grid, #publicProductList.product-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
 }
 @media(max-width:650px) {
   header { padding:12px }
@@ -586,7 +614,7 @@ h2 { font-size:20px }
   .stats,.toolbar,.formgrid { grid-template-columns:1fr }
   .formgrid .full { grid-column:auto }
   #addProductBtn { width:100% }
-  #productList.product-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+  #productList.product-grid, #publicProductList.product-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
   .product-image { height:125px }
   .product-card-body { padding:10px }
   .product-name { font-size:14px }
@@ -867,6 +895,15 @@ h2 { font-size:20px }
         </div>
 
         <form id="settingsForm" style="margin-top:20px; border-top:1px solid var(--line); padding-top:15px">
+          <div class="field">
+            <label>Logo del negocio</label>
+            <div id="bizLogoPreview" class="business-logo-preview">🏪</div>
+            <div class="file-upload-wrapper">
+              <span class="file-upload-btn">📷 Subir / Cambiar logo</span>
+              <input id="bizLogoFile" type="file" accept="image/*">
+            </div>
+            <input id="editLogoBase64" type="hidden">
+          </div>
           <div class="field"><label>Nombre del negocio</label><input id="editBiz" required></div>
           <div class="field"><label>Dueños</label><input id="editOwners" required></div>
           <div class="field"><label>Teléfono de WhatsApp (para ventas)</label><input id="editPhone" required></div>
@@ -1436,7 +1473,9 @@ async function renderBusinessList() {
 
   container.innerHTML = businessList.map(business => `
     <article class="business-card">
-      <div class="business-icon">🏪</div>
+      <div class="business-icon">
+        ${business.logo ? `<img src="${business.logo}" alt="Logo">` : '🏪'}
+      </div>
       <h3>${clean(business.name || "Mi negocio")}</h3>
       <p>${clean(business.type || "Negocio")}</p>
       <button type="button" data-open-business="${business.id}">
@@ -1763,6 +1802,14 @@ function setupBusinessUI() {
   $("editPhone").value = currentBusiness.phone || "";
   $("editType").value = currentBusiness.type || "Otro";
   $("editCategories").value = (currentBusiness.categories || []).join(", ");
+  
+  if (currentBusiness.logo) {
+    $("editLogoBase64").value = currentBusiness.logo;
+    $("bizLogoPreview").innerHTML = `<img src="${currentBusiness.logo}" alt="Logo">`;
+  } else {
+    $("editLogoBase64").value = "";
+    $("bizLogoPreview").innerHTML = "🏪";
+  }
 
   fillCategoryOptions();
 
@@ -1778,7 +1825,29 @@ function setupBusinessUI() {
 }
 
 /* =========================
-   GESTIÓN DE PERFIL DE USUARIO (SOLO AVATAR EN CABECERA)
+   PROCESAR LOGO DEL NEGOCIO
+========================= */
+$("bizLogoFile").addEventListener("change", async event => {
+  const file = event.target.files?.[0];
+  if (!file) return;
+
+  if (!file.type.startsWith("image/")) {
+    alert("Elegí una imagen válida.");
+    return;
+  }
+
+  try {
+    const imageData = await compressImage(file);
+    $("editLogoBase64").value = imageData;
+    $("bizLogoPreview").innerHTML = `<img src="${imageData}" alt="Logo">`;
+  } catch (error) {
+    console.error(error);
+    alert("No se pudo procesar el logo.");
+  }
+});
+
+/* =========================
+   GESTIÓN DE PERFIL DE USUARIO
 ========================= */
 function updateUIProfile() {
   const headerAvatar = $("headerAvatar");
@@ -2565,29 +2634,30 @@ $("settingsForm").addEventListener("submit", async event => {
   const phone = $("editPhone").value.trim();
   const type = $("editType").value;
   const categories = $("editCategories").value.split(",").map(v => v.trim()).filter(Boolean);
+  const logo = $("editLogoBase64").value || "";
 
   try {
     if (appMode === "local") {
       const list = await getLocalBusinesses();
       const index = list.findIndex(b => b.id === currentBusinessId);
       if (index !== -1) {
-        list[index] = { ...list[index], name, owners, phone, type, categories };
+        list[index] = { ...list[index], name, owners, phone, type, categories, logo };
         await saveLocalBusinesses(list);
         currentBusiness = list[index];
       }
     } else {
       await db.collection("businesses").doc(currentBusinessId).update({
-        name, owners, phone, type, categories,
+        name, owners, phone, type, categories, logo,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       });
-      currentBusiness = { ...currentBusiness, name, owners, phone, type, categories };
+      currentBusiness = { ...currentBusiness, name, owners, phone, type, categories, logo };
     }
 
     setText("welcome", name);
     setText("storeSubInfo", type);
     fillCategoryOptions();
     await refreshBusinessList();
-    alert("Datos actualizados.");
+    alert("Datos del negocio actualizados.");
   } catch (error) {
     console.error(error);
     alert("No se pudieron guardar los cambios.");
