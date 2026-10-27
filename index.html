@@ -72,6 +72,29 @@ header {
   color:var(--blue);
 }
 .logo span { color:white }
+.user-header-info {
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.avatar-mini {
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  background:#20375c;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:bold;
+  overflow:hidden;
+  border:1px solid var(--line);
+  flex-shrink:0;
+}
+.avatar-mini img {
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
 .panel,.card {
   background:var(--panel);
   border:1px solid var(--line);
@@ -191,6 +214,56 @@ h2 { font-size:20px }
   line-height:1.6;
   text-align:center;
   margin-top:25px;
+}
+
+/* MIEMBROS Y PERFIL */
+.members-list {
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin-top:10px;
+}
+.member-item {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px 12px;
+  background:#0c1426;
+  border:1px solid var(--line);
+  border-radius:9px;
+  font-size:14px;
+}
+.member-badge {
+  font-size:11px;
+  background:#20375c;
+  color:var(--blue);
+  padding:3px 7px;
+  border-radius:6px;
+  font-weight:bold;
+}
+.profile-card {
+  max-width:550px;
+  margin:auto;
+  text-align:center;
+}
+.avatar-large {
+  width:110px;
+  height:110px;
+  border-radius:50%;
+  background:#20375c;
+  margin:0 auto 15px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:42px;
+  overflow:hidden;
+  border:2px solid var(--blue);
+  position:relative;
+}
+.avatar-large img {
+  width:100%;
+  height:100%;
+  object-fit:cover;
 }
 
 /* HOME */
@@ -368,6 +441,12 @@ h2 { font-size:20px }
   font-size:13px;
   margin:5px 0 0;
 }
+.sale-actions {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-left:auto;
+}
 
 @media(max-width:950px) {
   #productList.product-grid {
@@ -414,6 +493,7 @@ h2 { font-size:20px }
   .product-actions { padding:0 8px 8px; gap:5px }
   .product-actions button { font-size:11px; padding:9px 3px }
   .business-grid,.home-actions { grid-template-columns:1fr }
+  .sale-actions { width:100%; justify-content:space-between; margin-top:8px; }
 }
 </style>
 </head>
@@ -421,9 +501,10 @@ h2 { font-size:20px }
 <body>
 <header>
   <div class="logo">Stockeá<span>.</span></div>
-  <div>
+  <div class="user-header-info">
+    <div id="headerAvatar" class="avatar-mini hidden">👤</div>
     <span id="userEmailDisplay" class="muted"></span>
-    <button id="headerLogout" class="secondary hidden">Cambiar modo / Salir</button>
+    <button id="headerLogout" class="secondary hidden">Salir / Cambiar modo</button>
   </div>
 </header>
 
@@ -540,6 +621,7 @@ h2 { font-size:20px }
     <button data-page="stock">▦ Stock</button>
     <button data-page="sales">↗ Ventas</button>
     <button data-page="settings">⚙ Mi negocio</button>
+    <button data-page="profile">👤 Perfil</button>
   </nav>
 
   <main>
@@ -631,7 +713,15 @@ h2 { font-size:20px }
           <button id="copyStoreCode" class="secondary" style="margin-top:10px">Copiar código</button>
         </div>
 
-        <form id="settingsForm" style="margin-top:20px">
+        <div id="membersSectionContainer" style="margin-top:20px; border-top:1px solid var(--line); padding-top:15px">
+          <p style="margin:0 0 5px"><b>👥 Miembros vinculados:</b></p>
+          <p class="sub" style="font-size:12px; margin-bottom:10px">Socio(s) que tienen acceso en tiempo real a este negocio.</p>
+          <div id="membersList" class="members-list">
+            <div class="empty">Cargando miembros...</div>
+          </div>
+        </div>
+
+        <form id="settingsForm" style="margin-top:20px; border-top:1px solid var(--line); padding-top:15px">
           <div class="field"><label>Nombre del negocio</label><input id="editBiz" required></div>
           <div class="field"><label>Dueños</label><input id="editOwners" required></div>
           <div class="field">
@@ -646,6 +736,32 @@ h2 { font-size:20px }
           </div>
           <div class="field"><label>Categorías separadas por comas</label><input id="editCategories" required></div>
           <button type="submit">Guardar cambios</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- SECCIÓN DE PERFIL -->
+    <section id="profile" class="hidden">
+      <h1>Mi perfil</h1>
+      <p class="sub">Personalizá tu nombre visible y foto de perfil.</p>
+      
+      <div class="panel profile-card">
+        <div id="profileAvatar" class="avatar-large">👤</div>
+        <form id="profileForm">
+          <div class="field">
+            <label>Foto de perfil</label>
+            <input id="profileImageFile" type="file" accept="image/*">
+            <input id="profileImageBase64" type="hidden">
+          </div>
+          <div class="field">
+            <label>Nombre visible / Apodo</label>
+            <input id="profileDisplayName" placeholder="Tu nombre o apodo">
+          </div>
+          <div class="field">
+            <label>Correo electrónico (solo lectura)</label>
+            <input id="profileEmail" readonly style="opacity:0.6; cursor:not-allowed">
+          </div>
+          <button type="submit" style="width:100%">Guardar perfil</button>
         </form>
       </div>
     </section>
@@ -677,6 +793,7 @@ const db = firebase.firestore();
 ========================= */
 let appMode = null; // 'cloud' o 'local'
 let currentUser = null;
+let userProfile = { displayName: "", photoURL: "" };
 let currentBusiness = null;
 let currentBusinessId = null;
 let products = [];
@@ -757,6 +874,7 @@ $("backToModeSelect").onclick = () => {
   hide("authScreen");
   show("modeSelectScreen");
   hide("headerLogout");
+  hide("headerAvatar");
   setText("userEmailDisplay", "");
 };
 
@@ -771,10 +889,12 @@ $("headerLogout").onclick = async () => {
   products = [];
   sales = [];
   businessList = [];
+  userProfile = { displayName: "", photoURL: "" };
   hide("app");
   hide("setup");
   hide("homeScreen");
   hide("authScreen");
+  hide("headerAvatar");
   show("modeSelectScreen");
   hide("headerLogout");
   setText("userEmailDisplay", "");
@@ -784,9 +904,19 @@ $("headerLogout").onclick = async () => {
    MODO LOCAL (LOCALSTORAGE)
 ========================= */
 function initLocalMode() {
-  // Ocultar opción unirse con código en local
   $("tabJoinBiz").classList.add("hidden");
+  loadLocalProfile();
   showHome();
+}
+
+function loadLocalProfile() {
+  const data = localStorage.getItem("stockea_local_profile");
+  if (data) {
+    userProfile = JSON.parse(data);
+  } else {
+    userProfile = { displayName: "Usuario Local", photoURL: "" };
+  }
+  updateUIProfile();
 }
 
 async function getLocalBusinesses() {
@@ -982,13 +1112,15 @@ document.querySelectorAll("nav [data-page]").forEach(button => {
       item.classList.toggle("active", item === button);
     });
 
-    ["dashboard", "stock", "sales", "settings"].forEach(id => {
+    ["dashboard", "stock", "sales", "settings", "profile"].forEach(id => {
       $(id).classList.toggle("hidden", id !== page);
     });
 
     if (page === "dashboard") renderDashboard();
     if (page === "stock") renderProducts();
     if (page === "sales") renderSales();
+    if (page === "settings") renderMembersList();
+    if (page === "profile") loadProfileSection();
   });
 });
 
@@ -1046,7 +1178,6 @@ $("createBizForm").addEventListener("submit", async event => {
       return;
     }
 
-    // Modo nube
     if (!currentUser) {
       showError("setupError", "Iniciá sesión primero.");
       return;
@@ -1162,7 +1293,6 @@ async function openBusiness(id) {
     return;
   }
 
-  // Modo nube
   if (!currentUser) throw new Error("Iniciá sesión primero.");
   clearListeners();
 
@@ -1192,12 +1322,15 @@ function setupBusinessUI() {
 
   setText("welcome", currentBusiness.name || "Mi negocio");
   setText("storeSubInfo", currentBusiness.type || "Panel general");
-  
+
   if (appMode === "local") {
     $("codeSectionContainer").classList.add("hidden");
+    $("membersSectionContainer").classList.add("hidden");
   } else {
     $("codeSectionContainer").classList.remove("hidden");
+    $("membersSectionContainer").classList.remove("hidden");
     setText("displayStoreCode", currentBusiness.accessCode || "—");
+    renderMembersList();
   }
 
   $("editBiz").value = currentBusiness.name || "";
@@ -1211,11 +1344,138 @@ function setupBusinessUI() {
     button.classList.toggle("active", button.dataset.page === "dashboard");
   });
 
-  ["dashboard", "stock", "sales", "settings"].forEach(id => {
+  ["dashboard", "stock", "sales", "settings", "profile"].forEach(id => {
     $(id).classList.toggle("hidden", id !== "dashboard");
   });
 
   renderDashboard();
+}
+
+/* =========================
+   GESTIÓN DE PERFIL DE USUARIO
+========================= */
+function updateUIProfile() {
+  const name = userProfile.displayName || (currentUser ? currentUser.email : "Modo Local");
+  setText("userEmailDisplay", name);
+
+  const headerAvatar = $("headerAvatar");
+  const profileAvatar = $("profileAvatar");
+
+  show(headerAvatar);
+
+  if (userProfile.photoURL) {
+    headerAvatar.innerHTML = `<img src="${userProfile.photoURL}" alt="Avatar">`;
+    if (profileAvatar) profileAvatar.innerHTML = `<img src="${userProfile.photoURL}" alt="Avatar">`;
+  } else {
+    headerAvatar.innerHTML = "👤";
+    if (profileAvatar) profileAvatar.innerHTML = "👤";
+  }
+}
+
+function loadProfileSection() {
+  $("profileDisplayName").value = userProfile.displayName || "";
+  $("profileEmail").value = currentUser ? currentUser.email : "Modo Local (Sin correo)";
+  $("profileImageBase64").value = userProfile.photoURL || "";
+}
+
+$("profileImageFile").addEventListener("change", async event => {
+  const file = event.target.files?.[0];
+  if (!file) return;
+
+  if (!file.type.startsWith("image/")) {
+    alert("Elegí una imagen válida.");
+    return;
+  }
+
+  try {
+    const imageData = await compressImage(file);
+    $("profileImageBase64").value = imageData;
+    $("profileAvatar").innerHTML = `<img src="${imageData}" alt="Avatar">`;
+  } catch (error) {
+    console.error(error);
+    alert("No se pudo procesar la foto.");
+  }
+});
+
+$("profileForm").addEventListener("submit", async event => {
+  event.preventDefault();
+
+  const displayName = $("profileDisplayName").value.trim();
+  const photoURL = $("profileImageBase64").value;
+
+  userProfile = { displayName, photoURL };
+
+  try {
+    if (appMode === "local") {
+      localStorage.setItem("stockea_local_profile", JSON.stringify(userProfile));
+      updateUIProfile();
+      alert("¡Perfil local actualizado!");
+    } else if (currentUser) {
+      await db.collection("users").doc(currentUser.uid).set({
+        displayName,
+        photoURL,
+        email: currentUser.email
+      }, { merge: true });
+
+      updateUIProfile();
+      alert("¡Perfil actualizado en la nube!");
+      if (currentBusiness) renderMembersList();
+    }
+  } catch (error) {
+    console.error(error);
+    alert("No se pudo guardar el perfil.");
+  }
+});
+
+/* =========================
+   OBTENER Y MOSTRAR MIEMBROS DEL NEGOCIO (NUBE)
+========================= */
+async function renderMembersList() {
+  if (appMode !== "cloud" || !currentBusiness) return;
+  const container = $("membersList");
+  if (!container) return;
+
+  const memberUids = currentBusiness.memberUids || [];
+  const ownerUid = currentBusiness.ownerUid;
+
+  if (!memberUids.length) {
+    container.innerHTML = '<div class="empty">No hay miembros vinculados.</div>';
+    return;
+  }
+
+  try {
+    const memberPromises = memberUids.map(async uid => {
+      const snap = await db.collection("users").doc(uid).get();
+      const data = snap.exists ? snap.data() : {};
+      return {
+        uid,
+        email: data.email || "Usuario sin correo",
+        displayName: data.displayName || "",
+        photoURL: data.photoURL || ""
+      };
+    });
+
+    const members = await Promise.all(memberPromises);
+
+    container.innerHTML = members.map(m => {
+      const isOwner = m.uid === ownerUid;
+      const isMe = m.uid === currentUser?.uid;
+      const name = m.displayName ? `${m.displayName} (${m.email})` : m.email;
+      const avatarHTML = m.photoURL ? `<img src="${m.photoURL}" style="width:100%;height:100%;object-fit:cover">` : "👤";
+
+      return `
+        <div class="member-item">
+          <div class="avatar-mini">${avatarHTML}</div>
+          <span style="flex:1; overflow:hidden; text-overflow:ellipsis">${clean(name)}</span>
+          ${isOwner ? '<span class="member-badge">Creador</span>' : '<span class="member-badge" style="background:#293650;color:#95a3bd">Socio</span>'}
+          ${isMe ? '<span class="member-badge" style="background:#1b4a3f;color:#35d49a">Vos</span>' : ''}
+        </div>
+      `;
+    }).join("");
+  } catch (error) {
+    console.error("Error al obtener lista de miembros:", error);
+    container.innerHTML = '<div class="empty">Error al cargar la lista de miembros.</div>';
+  }
 }
 
 /* =========================
@@ -1236,19 +1496,28 @@ auth.onAuthStateChanged(async user => {
     products = [];
     sales = [];
     businessList = [];
+    userProfile = { displayName: "", photoURL: "" };
+    hide("headerAvatar");
     showAuth();
     return;
   }
 
   hide("authScreen");
-  setText("userEmailDisplay", user.email || "Modo Nube");
 
   try {
     const userRef = db.collection("users").doc(user.uid);
     let userSnap = await userRef.get();
     if (!userSnap.exists) {
       await userRef.set({ email: user.email || "", businessIds: [] }, { merge: true });
+    } else {
+      const uData = userSnap.data();
+      userProfile = {
+        displayName: uData.displayName || "",
+        photoURL: uData.photoURL || ""
+      };
     }
+
+    updateUIProfile();
     await refreshBusinessList();
     showHome();
   } catch (error) {
@@ -1268,7 +1537,7 @@ function showAuth() {
    ESCUCHAR CAMBIOS EN TIEMPO REAL (NUBE) O LOCAL
 ========================= */
 function startBusinessListeners() {
-  if (appMode === "local") return; // En local se actualiza manualmente
+  if (appMode === "local") return;
   if (!currentBusinessId) return;
   clearListeners();
 
@@ -1605,7 +1874,6 @@ async function sellProduct(id) {
       return;
     }
 
-    // Modo nube transaccional
     const productRef = db.collection("businesses").doc(currentBusinessId).collection("products").doc(id);
     const saleRef = db.collection("businesses").doc(currentBusinessId).collection("sales").doc();
 
@@ -1642,6 +1910,61 @@ async function sellProduct(id) {
   }
 }
 
+/* =========================
+   ANULAR VENTA
+========================= */
+async function cancelSale(saleId) {
+  const sale = sales.find(s => s.id === saleId);
+  if (!sale) return;
+
+  if (!confirm(`¿Anular la venta de ${sale.quantity} unidad(es) de "${sale.productName}"?\nEl producto regresará al stock.`)) return;
+
+  try {
+    if (appMode === "local") {
+      // Devolver stock al producto
+      products = await getLocalProducts(currentBusinessId);
+      const product = products.find(p => p.id === sale.productId);
+      if (product) {
+        product.quantity = (Number(product.quantity) || 0) + (Number(sale.quantity) || 0);
+        await saveLocalProducts(currentBusinessId, products);
+      }
+
+      // Eliminar la venta
+      sales = sales.filter(s => s.id !== saleId);
+      await saveLocalSales(currentBusinessId, sales);
+
+      renderSales();
+      renderProducts();
+      renderDashboard();
+      alert("Venta anulada y stock devuelto.");
+      return;
+    }
+
+    // Modo Nube con transacción
+    const saleRef = db.collection("businesses").doc(currentBusinessId).collection("sales").doc(saleId);
+    const productRef = sale.productId ? db.collection("businesses").doc(currentBusinessId).collection("products").doc(sale.productId) : null;
+
+    await db.runTransaction(async transaction => {
+      if (productRef) {
+        const productSnap = await transaction.get(productRef);
+        if (productSnap.exists) {
+          const currentQty = Number(productSnap.data().quantity) || 0;
+          transaction.update(productRef, {
+            quantity: currentQty + (Number(sale.quantity) || 0),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        }
+      }
+      transaction.delete(saleRef);
+    });
+
+    alert("Venta anulada correctamente.");
+  } catch (error) {
+    console.error(error);
+    alert("No se pudo anular la venta.");
+  }
+}
+
 function renderSales() {
   const container = $("allSales");
   if (!container) return;
@@ -1661,12 +1984,19 @@ function renderSales() {
           <b>${clean(sale.productName || "Producto")}</b>
           <p>${dateText} · Cantidad: ${Number(sale.quantity) || 0}</p>
         </div>
-        <div>
-          <b>${money(sale.total)}</b>
-          <p class="green">Ganancia: ${money(sale.profit)}</p>
+        <div class="sale-actions">
+          <div style="text-align:right">
+            <b>${money(sale.total)}</b>
+            <p class="green">Ganancia: ${money(sale.profit)}</p>
+          </div>
+          <button type="button" class="danger" data-cancel-sale="${sale.id}" style="padding:6px 10px;font-size:12px">Anular</button>
         </div>
       </div>`;
   }).join("");
+
+  container.querySelectorAll("[data-cancel-sale]").forEach(btn => {
+    btn.onclick = () => cancelSale(btn.dataset.cancelSale);
+  });
 }
 
 $("periodFilter").addEventListener("change", renderDashboard);
@@ -1735,10 +2065,17 @@ function renderDashboard() {
               <b>${clean(sale.productName || "Producto")}</b>
               <p>${dateText} · ${Number(sale.quantity) || 0} unidad(es)</p>
             </div>
-            <b>${money(sale.total)}</b>
+            <div class="sale-actions">
+              <b>${money(sale.total)}</b>
+              <button type="button" class="danger" data-cancel-sale="${sale.id}" style="padding:4px 8px;font-size:11px">Anular</button>
+            </div>
           </div>`;
       }).join("")
     : '<div class="empty">Todavía no hay ventas.</div>';
+
+  $("recentSales").querySelectorAll("[data-cancel-sale]").forEach(btn => {
+    btn.onclick = () => cancelSale(btn.dataset.cancelSale);
+  });
 
   const lowStock = products.filter(p => (Number(p.quantity) || 0) <= 3);
   $("lowStock").innerHTML = lowStock.length
