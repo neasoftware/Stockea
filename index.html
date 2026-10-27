@@ -810,7 +810,6 @@ h2 { font-size:20px }
     <button data-page="stock">▦ Stock</button>
     <button data-page="sales">↗ Ventas</button>
     <button data-page="settings">⚙ Mi negocio</button>
-    <button data-page="profile">👤 Perfil y Temas</button>
   </nav>
 
   <main>
@@ -1622,13 +1621,12 @@ document.querySelectorAll("nav [data-page]").forEach(button => {
     if (page === "stock") renderProducts();
     if (page === "sales") renderSales();
     if (page === "settings") renderMembersList();
-    if (page === "profile") loadProfileSection();
   });
 });
 
 const openProfileView = () => {
   document.querySelectorAll("nav [data-page]").forEach(item => {
-    item.classList.toggle("active", item.dataset.page === "profile");
+    item.classList.remove("active");
   });
   ["dashboard", "stock", "sales", "settings", "profile"].forEach(id => {
     $(id).classList.toggle("hidden", id !== "profile");
