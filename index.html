@@ -115,7 +115,7 @@ header {
   width:42px;
   height:42px;
   border-radius:50%;
-  background:#20375c;
+  background:#1a2744;
   display:flex;
   align-items:center;
   justify-content:center;
@@ -125,6 +125,7 @@ header {
   flex-shrink:0;
   cursor:pointer;
   transition: transform .2s;
+  color: var(--muted);
 }
 .avatar-mini:hover {
   transform: scale(1.05);
@@ -318,7 +319,7 @@ h2 { font-size:20px }
   width:110px;
   height:110px;
   border-radius:50%;
-  background:#20375c;
+  background:#1a2744;
   margin:0 auto 15px;
   display:flex;
   align-items:center;
@@ -327,6 +328,7 @@ h2 { font-size:20px }
   overflow:hidden;
   border:2px solid var(--blue);
   position:relative;
+  color:var(--muted);
 }
 .avatar-large img {
   width:100%;
@@ -574,6 +576,25 @@ h2 { font-size:20px }
 }
 .product-actions .danger { grid-column:1/-1 }
 
+.sale-item-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  background: #0c1426;
+  border: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+.sale-item-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .sale {
   display:flex;
   align-items:center;
@@ -624,7 +645,9 @@ h2 { font-size:20px }
   <div class="logo">Stockeá<span>.</span></div>
   <div class="user-header-info">
     <button id="headerLogout" class="secondary hidden" style="font-size:12px; padding:8px 10px;">🚪 Salir</button>
-    <div id="headerAvatar" class="avatar-mini hidden" title="Ir a mi perfil">👤</div>
+    <div id="headerAvatar" class="avatar-mini hidden" title="Ir a mi perfil">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+    </div>
   </div>
 </header>
 
@@ -829,7 +852,6 @@ h2 { font-size:20px }
           <div class="formgrid">
             <div class="field"><label>Nombre del producto *</label><input id="pName" required placeholder="Ej: Funda Silicona, Cargador"></div>
             
-            <!-- CATEGORÍA Y MODELO JUNTOS -->
             <div class="field">
               <label>Categoría *</label>
               <input id="pCategory" list="categoriesDatalist" required placeholder="Ej: Funda, Vidrio, Cargador">
@@ -932,7 +954,9 @@ h2 { font-size:20px }
       <p class="sub">Personalizá tu cuenta, tu foto y el estilo visual de la aplicación.</p>
       
       <div class="panel profile-card">
-        <div id="profileAvatar" class="avatar-large">👤</div>
+        <div id="profileAvatar" class="avatar-large">
+          <svg width="55" height="55" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        </div>
         <form id="profileForm">
           <div class="field">
             <label>Foto de perfil</label>
@@ -1082,6 +1106,10 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   if (catalogCode) {
     hide("modeSelectScreen");
+    hide("authScreen");
+    hide("homeScreen");
+    hide("setup");
+    hide("app");
     await loadPublicCatalog(catalogCode);
   }
 });
@@ -1170,6 +1198,9 @@ function renderPublicProducts() {
 
   container.innerHTML = filtered.map(product => {
     const quantity = Number(product.quantity) || 0;
+    const stockClass = quantity <= 0 ? "out" : quantity <= 3 ? "low" : "green";
+    const stockLabel = quantity <= 0 ? "Agotado" : quantity <= 3 ? `Stock bajo (${quantity} disp.)` : `Disponibles: ${quantity}`;
+
     return `
       <article class="product-card">
         <div class="product-image">
@@ -1178,8 +1209,8 @@ function renderPublicProducts() {
         <div class="product-card-body">
           <div class="product-name">${clean(product.name)}</div>
           <div class="product-price">${money(product.price)}</div>
-          <div class="product-stock" style="border:0;padding-top:5px">
-            <span class="stock-status ${quantity <= 0 ? 'out' : 'green'}">${quantity > 0 ? 'Disponible' : 'Agotado'}</span>
+          <div class="product-stock">
+            <span class="stock-status ${stockClass}">${stockLabel}</span>
           </div>
         </div>
         <div style="padding:10px">
@@ -1856,12 +1887,15 @@ function updateUIProfile() {
 
   show(headerAvatar);
 
+  const defaultIconSVG = `<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`;
+  const defaultLargeSVG = `<svg width="55" height="55" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`;
+
   if (userProfile.photoURL) {
     headerAvatar.innerHTML = `<img src="${userProfile.photoURL}" alt="Avatar">`;
     if (profileAvatar) profileAvatar.innerHTML = `<img src="${userProfile.photoURL}" alt="Avatar">`;
   } else {
-    headerAvatar.innerHTML = "👤";
-    if (profileAvatar) profileAvatar.innerHTML = "👤";
+    headerAvatar.innerHTML = defaultIconSVG;
+    if (profileAvatar) profileAvatar.innerHTML = defaultLargeSVG;
   }
 }
 
@@ -1955,7 +1989,7 @@ async function renderMembersList() {
       const isOwner = m.uid === ownerUid;
       const isMe = m.uid === currentUser?.uid;
       const name = m.displayName ? `${m.displayName} (${m.email})` : m.email;
-      const avatarHTML = m.photoURL ? `<img src="${m.photoURL}" style="width:100%;height:100%;object-fit:cover">` : "👤";
+      const avatarHTML = m.photoURL ? `<img src="${m.photoURL}" style="width:100%;height:100%;object-fit:cover">` : `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`;
 
       return `
         <div class="member-item">
@@ -2011,6 +2045,9 @@ auth.onAuthStateChanged(async user => {
   currentUser = user;
   clearListeners();
 
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get("catalogo")) return; // Si es catálogo público, no interferir con vistas privadas
+
   if (!user) {
     if (appMode === "cloud") {
       hide("app");
@@ -2034,7 +2071,7 @@ auth.onAuthStateChanged(async user => {
     if (!userSnap.exists) {
       await userRef.set({ email: user.email || "", businessIds: [] }, { merge: true });
     } else {
-      const uData = userSnap.data();
+    const uData = userSnap.data();
       userProfile = {
         displayName: uData.displayName || "",
         photoURL: uData.photoURL || ""
@@ -2395,6 +2432,7 @@ async function sellProduct(id) {
         id: "sale_" + Date.now(),
         productId: id,
         productName: product.name + (product.model ? ` (${product.model})` : ''),
+        productImage: product.image || "",
         quantity,
         unitPrice: product.price || 0,
         unitCost: product.cost || 0,
@@ -2433,6 +2471,7 @@ async function sellProduct(id) {
       transaction.set(saleRef, {
         productId: id,
         productName: fullName,
+        productImage: freshData.image || "",
         quantity,
         unitPrice: freshData.price || 0,
         unitCost: freshData.cost || 0,
@@ -2514,9 +2553,11 @@ function renderSales() {
   container.innerHTML = sales.map(sale => {
     const date = getSaleTime(sale);
     const dateText = date ? new Date(date).toLocaleString("es-AR") : "Fecha pendiente";
+    const imgHTML = sale.productImage ? `<img src="${sale.productImage}" alt="Foto">` : "📦";
 
     return `
       <div class="sale">
+        <div class="sale-item-thumb">${imgHTML}</div>
         <div style="flex:1;min-width:150px">
           <b>${clean(sale.productName || "Producto")}</b>
           <p>${dateText} · Cantidad: ${Number(sale.quantity) || 0}</p>
@@ -2581,7 +2622,7 @@ function renderDashboard() {
   sales.forEach(sale => {
     const id = sale.productId || sale.productName || "unknown";
     if (!soldByProduct[id]) {
-      soldByProduct[id] = { id: sale.productId, name: sale.productName || "Producto", quantity: 0, total: 0 };
+      soldByProduct[id] = { id: sale.productId, name: sale.productName || "Producto", image: sale.productImage || "", quantity: 0, total: 0 };
     }
     soldByProduct[id].quantity += Number(sale.quantity) || 0;
     soldByProduct[id].total += Number(sale.total) || 0;
@@ -2591,7 +2632,8 @@ function renderDashboard() {
   
   if (topProductData) {
     const matchedProduct = products.find(p => p.id === topProductData.id || p.name === topProductData.name);
-    const imgHTML = matchedProduct?.image ? `<img src="${matchedProduct.image}" alt="Foto">` : "📦";
+    const finalImg = topProductData.image || matchedProduct?.image;
+    const imgHTML = finalImg ? `<img src="${finalImg}" alt="Foto">` : "📦";
 
     $("topProduct").innerHTML = `
       <div class="star-product-card">
@@ -2611,8 +2653,10 @@ function renderDashboard() {
     ? sales.slice(0, 5).map(sale => {
         const time = getSaleTime(sale);
         const dateText = time ? new Date(time).toLocaleDateString("es-AR") : "—";
+        const imgHTML = sale.productImage ? `<img src="${sale.productImage}" alt="Foto">` : "📦";
         return `
           <div class="sale">
+            <div class="sale-item-thumb">${imgHTML}</div>
             <div style="flex:1">
               <b>${clean(sale.productName || "Producto")}</b>
               <p>${dateText} · ${Number(sale.quantity) || 0} unidad(es)</p>
@@ -2633,9 +2677,10 @@ function renderDashboard() {
   $("lowStock").innerHTML = lowStock.length
     ? lowStock.map(p => `
         <div class="sale">
+          <div class="sale-item-thumb">${p.image ? `<img src="${p.image}" alt="Foto">` : "📦"}</div>
           <div style="flex:1">
-            <b>${clean(p.name || "Producto")} ${p.model ? `(${clean(p.model)})` : ''}</b>
-            <p>${clean(p.category || "General")}</p>
+            <b>${clean(p.name || "Producto")}</b>
+            <p>Stock bajo</p>
           </div>
           <span class="stock-status ${Number(p.quantity) <= 0 ? "out" : "low"}">${Number(p.quantity) || 0} unidades</span>
         </div>`).join("")
