@@ -3256,6 +3256,325 @@ $("copyCatalogLinkBtn").onclick = async () => {
     prompt("Copiá este enlace para enviar a tus clientes:", link);
   }
 };
+/* =====================================================================
+   PARCHE STOCKEÁ — pegar COMPLETO al final del <script>, justo antes
+   del último </script>. Redefine funciones y reemplaza los formularios
+   de crear/unirse, así no hay que tocar nada más del archivo.
+===================================================================== */
+
+/* ---- 1. Códigos seguros ---- */
+function secureCode(len = 8) {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const arr = crypto.getRandomValues(new Uint32Array(len));
+  return Array.from(arr, n => chars[n % chars.length]).join("");
+}
+
+/* ---- 2. Avatar del header (show recibía el elemento, no el id) ---- */
+function updateUIProfile() {
+  const headerAvatar = $("headerAvatar");
+  const profileAvatar = $("profileAvatar");
+  show("headerAvatar");
+
+  const small = `<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`;
+  const large = small.replace('width="22" height="22"', 'width="55" height="55"');
+
+  if (userProfile.photoURL) {
+    headerAvatar.innerHTML = `<img src="${userProfile.photoURL}" alt="Avatar">`;
+    if (profileAvatar) profileAvatar.innerHTML = `<img src="${userProfile.photoURL}" alt="Avatar">`;
+  } else {
+    headerAvatar.innerHTML = small;
+    if (profileAvatar) profileAvatar.innerHTML = large;
+  }
+}
+
+/* ---- 3. Lista de negocios: tolera negocios sin acceso ---- */
+async function refreshBusinessList() {
+  if (appMode === "local") {
+    businessList = await getLocalBusinesses();
+    return;
+  }
+  if (!currentUser) return;
+
+  const userSnap = await db.collection("users").doc(currentUser.uid).get();
+  const ids = userSnap.exists ? (userSnap.data().businessIds || []) : [];
+  businessList = [];
+
+  for (const id of ids) {
+    try {
+      const snap = await db.collection("businesses").doc(id).get();
+      if (!snap.exists) continue;
+      const data = snap.data();
+      if ((data.memberUids || []).includes(currentUser.uid)) {
+        businessList.push({ id: snap.id, ...data });
+      }
+    } catch (e) {
+      console.warn("Sin acceso al negocio", id);
+    }
+  }
+}
+
+/* ---- 4. Crear negocio (con catálogo separado) ---- */
+(function () {
+  const old = $("createBizForm");
+  const form = old.cloneNode(true);
+  old.replaceWith(form);
+
+  form.addEventListener("submit", async event => {
+    event.preventDefault();
+    clearError("setupError");
+
+    const name = $("bizName").value.trim();
+    const owners = $("owners").value.trim();
+    const phone = $("phone").value.trim();
+    const type = $("businessType").value;
+    const categories = $("categories").value.split(",").map(v => v.trim()).filter(Boolean);
+
+    if (!name || !owners || !phone || !categories.length) {
+      showError("setupError", "Completá los campos obligatorios.");
+      return;
+    }
+
+    const button = form.querySelector('button[type="submit"]');
+    button.disabled = true;
+
+    try {
+      if (appMode === "local") {
+        const list = await getLocalBusinesses();
+        list.push({
+          id: "local_" + Date.now(),
+          name, owners, phone, type, categories,
+          accessCode: "LOCAL",
+          createdAt: Date.now()
+        });
+        await saveLocalBusinesses(list);
+        await refreshBusinessList();
+        showHome();
+        alert("¡Negocio local creado!");
+        form.reset();
+        return;
+      }
+
+      if (!currentUser) {
+        showError("setupError", "Iniciá sesión primero.");
+        return;
+      }
+
+      const code = secureCode(8);
+      const catalogId = secureCode(12);
+      const userRef = db.collection("users").doc(currentUser.uid);
+      const businessRef = db.collection("businesses").doc();
+      const ts = firebase.firestore.FieldValue.serverTimestamp();
+
+      const batch = db.batch();
+      batch.set(businessRef, {
+        name, owners, phone, type, categories,
+        accessCode: code,
+        catalogId,
+        ownerUid: currentUser.uid,
+        memberUids: [currentUser.uid],
+        createdAt: ts
+      });
+      batch.set(userRef, {
+        email: currentUser.email || "",
+        businessIds: firebase.firestore.FieldValue.arrayUnion(businessRef.id)
+      }, { merge: true });
+      batch.set(db.collection("invitaciones").doc(code), {
+        businessId: businessRef.id,
+        createdAt: ts
+      });
+      batch.set(db.collection("catalogos").doc(catalogId), {
+        businessId: businessRef.id,
+        ownerUid: currentUser.uid,
+        name, phone
+      });
+
+      await batch.commit();
+      await refreshBusinessList();
+      showHome();
+      alert("¡Negocio creado en la nube!");
+      form.reset();
+    } catch (error) {
+      console.error(error);
+      showError("setupError", "No se pudo crear el negocio.");
+    } finally {
+      button.disabled = false;
+    }
+  });
+})();
+
+/* ---- 5. Unirse a un negocio (con joinCode para las reglas) ---- */
+(function () {
+  const old = $("joinBizForm");
+  const form = old.cloneNode(true);
+  old.replaceWith(form);
+
+  form.addEventListener("submit", async event => {
+    event.preventDefault();
+    clearError("setupError");
+
+    if (!currentUser) {
+      showError("setupError", "Iniciá sesión primero.");
+      return;
+    }
+
+    const code = $("joinCode").value.trim().toUpperCase();
+    if (!code) {
+      showError("setupError", "Ingresá el código de acceso.");
+      return;
+    }
+
+    const button = form.querySelector('button[type="submit"]');
+    button.disabled = true;
+
+    try {
+      const invSnap = await db.collection("invitaciones").doc(code).get();
+      if (!invSnap.exists) throw new Error("El código no existe o ya no es válido.");
+      const businessId = invSnap.data().businessId;
+
+      const batch = db.batch();
+      batch.update(db.collection("businesses").doc(businessId), {
+        memberUids: firebase.firestore.FieldValue.arrayUnion(currentUser.uid),
+        joinCode: code
+      });
+      batch.set(db.collection("users").doc(currentUser.uid), {
+        email: currentUser.email || "",
+        businessIds: firebase.firestore.FieldValue.arrayUnion(businessId)
+      }, { merge: true });
+      await batch.commit();
+
+      await refreshBusinessList();
+      showHome();
+      form.reset();
+      alert("¡Te uniste al negocio!");
+    } catch (error) {
+      console.error(error);
+      const denied = error.code === "permission-denied";
+      showError("setupError", denied ? "El código no es válido o ya sos miembro." : (error.message || "No se pudo unir al negocio."));
+    } finally {
+      button.disabled = false;
+    }
+  });
+})();
+
+/* ---- 6. Expulsar socio (ya no toca el perfil del otro usuario) ---- */
+async function kickMember(targetUid) {
+  if (!confirm("¿Seguro que querés expulsar a este socio del negocio? Ya no tendrá acceso en tiempo real.")) return;
+  try {
+    await db.collection("businesses").doc(currentBusinessId).update({
+      memberUids: firebase.firestore.FieldValue.arrayRemove(targetUid)
+    });
+    currentBusiness.memberUids = (currentBusiness.memberUids || []).filter(id => id !== targetUid);
+    renderMembersList();
+    alert("El socio fue expulsado del negocio.");
+  } catch (error) {
+    console.error(error);
+    alert("Error al expulsar al miembro.");
+  }
+}
+
+/* ---- 7. Catálogo público: lee /catalogos/{catalogId} ---- */
+async function loadPublicCatalog(codeOrId) {
+  try {
+    show("publicCatalogScreen");
+    setText("publicCatalogTitle", "Cargando catálogo...");
+
+    let bData = null;
+    let bId = null;
+
+    const localList = JSON.parse(localStorage.getItem("stockea_local_businesses") || "[]");
+    const foundLocal = localList.find(b => b.id === codeOrId);
+
+    if (foundLocal) {
+      bData = foundLocal;
+      bId = foundLocal.id;
+      products = JSON.parse(localStorage.getItem(`stockea_local_products_${bId}`) || "[]");
+    } else {
+      try {
+        const cat = await db.collection("catalogos").doc(String(codeOrId).toUpperCase()).get();
+        if (cat.exists) {
+          bId = cat.data().businessId;
+          bData = { name: cat.data().name, phone: cat.data().phone };
+          const prodSnap = await db.collection("businesses").doc(bId).collection("products").get();
+          products = prodSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        }
+      } catch (fbError) {
+        console.warn("Error leyendo el catálogo:", fbError);
+      }
+    }
+
+    if (!bData) {
+      setText("publicCatalogTitle", "Catálogo no encontrado");
+      $("publicProductList").innerHTML = '<div class="panel empty">El catálogo que buscás no existe o el enlace es incorrecto.</div>';
+      return;
+    }
+
+    currentBusiness = { id: bId, ...bData };
+    setText("publicCatalogTitle", currentBusiness.name || "Catálogo");
+    setText("publicCatalogSub", `Contacto / WhatsApp: ${currentBusiness.phone || "No especificado"}`);
+    fillPublicCategories();
+    renderPublicProducts();
+  } catch (error) {
+    console.error(error);
+    alert("Error al cargar el catálogo público.");
+  }
+}
+
+/* ---- 8. Link del catálogo (genera catalogId si el negocio es viejo) ---- */
+async function ensureCatalogId() {
+  if (currentBusiness.catalogId) return currentBusiness.catalogId;
+
+  const id = secureCode(12);
+  const batch = db.batch();
+  batch.update(db.collection("businesses").doc(currentBusinessId), { catalogId: id });
+  batch.set(db.collection("catalogos").doc(id), {
+    businessId: currentBusinessId,
+    ownerUid: currentBusiness.ownerUid,
+    name: currentBusiness.name || "",
+    phone: currentBusiness.phone || ""
+  });
+  await batch.commit();
+  currentBusiness.catalogId = id;
+  return id;
+}
+
+$("copyCatalogLinkBtn").onclick = async () => {
+  let key;
+  try {
+    if (appMode === "local") {
+      alert("En modo local el catálogo solo se ve en este dispositivo.");
+      key = currentBusinessId;
+    } else {
+      key = await ensureCatalogId();
+    }
+  } catch (error) {
+    console.error(error);
+    alert("Solo el creador del negocio puede generar el enlace del catálogo.");
+    return;
+  }
+
+  const link = `${window.location.origin}${window.location.pathname}?catalogo=${key}`;
+  try {
+    await navigator.clipboard.writeText(link);
+    alert("¡Enlace de catálogo copiado!\n" + link);
+  } catch (e) {
+    prompt("Copiá este enlace para enviar a tus clientes:", link);
+  }
+};
+
+/* ---- 9. Mantener nombre/teléfono del catálogo sincronizados ---- */
+$("settingsForm").addEventListener("submit", async () => {
+  if (appMode !== "cloud" || !currentBusiness?.catalogId) return;
+  if (currentUser?.uid !== currentBusiness.ownerUid) return;
+  try {
+    await db.collection("catalogos").doc(currentBusiness.catalogId).update({
+      name: $("editBiz").value.trim(),
+      phone: $("editPhone").value.trim()
+    });
+  } catch (e) {
+    console.warn("No se pudo sincronizar el catálogo:", e);
+  }
+});
+
 </script>
 </body>
 </html>
