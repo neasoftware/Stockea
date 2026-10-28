@@ -2403,7 +2403,7 @@ $("clientForm").addEventListener("submit", async event => {
     const data = {
       name, phone, notes,
       debt: 0,
-      createdAt: Date.now()
+      createdAt: appMode === "cloud" ? firebase.firestore.FieldValue.serverTimestamp() : Date.now()
     };
 
     if (appMode === "local") {
@@ -2414,14 +2414,13 @@ $("clientForm").addEventListener("submit", async event => {
       hide("clientModal");
       renderClients();
     } else {
-      data.createdAt = Date.now();
       await db.collection("businesses").doc(currentBusinessId).collection("clients").add(data);
       hide("clientModal");
     }
     alert("¡Cliente registrado exitosamente!");
   } catch (error) {
-    console.error(error);
-    alert("No se pudo registrar el cliente.");
+    console.error("Error al registrar cliente:", error);
+    alert("No se pudo registrar el cliente. Verificá tu conexión.");
   }
 });
 
@@ -2888,24 +2887,25 @@ async function sellProduct(id) {
     const clientRef = selectedClientId ? db.collection("businesses").doc(currentBusinessId).collection("clients").doc(selectedClientId) : null;
 
     await db.runTransaction(async transaction => {
-      const snap = await transaction.get(productRef);
-      if (!snap.exists) throw new Error("Producto no encontrado.");
+      // 1. PRIMERO TODAS LAS LECTURAS (REQUISITO ESTRICTO DE FIRESTORE)
+      const productSnap = await transaction.get(productRef);
+      const clientSnap = clientRef ? await transaction.get(clientRef) : null;
 
-      const freshData = snap.data();
+      if (!productSnap.exists) throw new Error("Producto no encontrado.");
+
+      const freshData = productSnap.data();
       const freshQty = Number(freshData.quantity) || 0;
       if (freshQty < quantity) throw new Error("Stock insuficiente.");
 
+      // 2. LUEGO TODAS LAS ESCRITURAS
       transaction.update(productRef, {
         quantity: freshQty - quantity,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       });
 
-      if (clientRef) {
-        const clientSnap = await transaction.get(clientRef);
-        if (clientSnap.exists) {
-          const currentDebt = Number(clientSnap.data().debt) || 0;
-          transaction.update(clientRef, { debt: currentDebt + saleTotal });
-        }
+      if (clientRef && clientSnap && clientSnap.exists) {
+        const currentDebt = Number(clientSnap.data().debt) || 0;
+        transaction.update(clientRef, { debt: currentDebt + saleTotal });
       }
 
       const fullName = freshData.name + (freshData.model ? ` (${freshData.model})` : '');
@@ -2976,22 +2976,21 @@ async function cancelSale(saleId) {
     const clientRef = sale.clientId ? db.collection("businesses").doc(currentBusinessId).collection("clients").doc(sale.clientId) : null;
 
     await db.runTransaction(async transaction => {
-      if (productRef) {
-        const productSnap = await transaction.get(productRef);
-        if (productSnap.exists) {
-          const currentQty = Number(productSnap.data().quantity) || 0;
-          transaction.update(productRef, {
-            quantity: currentQty + (Number(sale.quantity) || 0),
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-          });
-        }
+      // 1. PRIMERO TODAS LAS LECTURAS
+      const productSnap = productRef ? await transaction.get(productRef) : null;
+      const clientSnap = clientRef && sale.paymentMethod === "Cuenta Corriente" ? await transaction.get(clientRef) : null;
+
+      // 2. LUEGO TODAS LAS ESCRITURAS
+      if (productRef && productSnap && productSnap.exists) {
+        const currentQty = Number(productSnap.data().quantity) || 0;
+        transaction.update(productRef, {
+          quantity: currentQty + (Number(sale.quantity) || 0),
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
       }
-      if (clientRef && sale.paymentMethod === "Cuenta Corriente") {
-        const clientSnap = await transaction.get(clientRef);
-        if (clientSnap.exists) {
-          const currentDebt = Number(clientSnap.data().debt) || 0;
-          transaction.update(clientRef, { debt: Math.max(0, currentDebt - (Number(sale.total) || 0)) });
-        }
+      if (clientRef && clientSnap && clientSnap.exists && sale.paymentMethod === "Cuenta Corriente") {
+        const currentDebt = Number(clientSnap.data().debt) || 0;
+        transaction.update(clientRef, { debt: Math.max(0, currentDebt - (Number(sale.total) || 0)) });
       }
       transaction.delete(saleRef);
     });
