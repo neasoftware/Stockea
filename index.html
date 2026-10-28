@@ -15,13 +15,11 @@ async function loadPublicCatalog(codeOrId) {
       products = JSON.parse(localStorage.getItem(`stockea_local_products_${bId}`) || "[]");
     } else {
       try {
-        // Intentar buscar directamente por ID de documento en Firestore
         let snap = await db.collection("businesses").doc(codeOrId).get();
         if (snap.exists) {
           bData = snap.data();
           bId = snap.id;
         } else {
-          // Si no es por ID, buscar por el código de acceso
           const query = await db.collection("businesses").where("accessCode", "==", String(codeOrId).toUpperCase()).get();
           if (!query.empty) {
             snap = query.docs[0];
